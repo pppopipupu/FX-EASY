@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "fxeasy:animated_special",
+    "base": "fxeasy:item/fx_phone",
+    "model": {
+      "type": "fxeasy:fx_phone",
+      "sprite": "fxeasy:item/fx_phone"
+    }
+  }
+}

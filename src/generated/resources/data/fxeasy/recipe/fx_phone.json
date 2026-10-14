@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:gold_ingot",
+    "minecraft:emerald",
+    "minecraft:dirt",
+    "minecraft:diamond",
+    "minecraft:amethyst_shard",
+    "minecraft:copper_ingot"
+  ],
+  "result": {
+    "id": "fxeasy:fx_phone"
+  }
+}

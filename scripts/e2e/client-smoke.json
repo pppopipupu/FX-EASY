@@ -1,0 +1,27 @@
+{
+  "name": "fxeasy client smoke",
+  "timeout": 600,
+  "totalTimeout": 1200,
+  "steps": [
+    {
+      "type": "CONTAINS",
+      "message": "HMC-Specifics initialized!"
+    },
+    {
+      "type": "CONTAINS",
+      "message": "joined the game"
+    },
+    {
+      "type": "SEND",
+      "message": "gui"
+    },
+    {
+      "type": "SEND",
+      "message": "quit"
+    },
+    {
+      "type": "ENDS_WITH",
+      "message": "Quitting Minecraft..."
+    }
+  ]
+}

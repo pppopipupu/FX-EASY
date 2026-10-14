@@ -1,0 +1,157 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.148'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+
+    exclude("**/*.bbmodel")
+    exclude("**/.cache/**")
+}
+
+repositories {
+    mavenCentral()
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientProbe {
+            client()
+            programArguments.addAll '--quickPlaySingleplayer', (project.findProperty('probeWorld') ?: 'probe')
+            systemProperty 'fxeasy.probe.dir', 'probe'
+            systemProperty 'fxeasy.probe.quit', 'true'
+            systemProperty 'fxeasy.probe.shots', (project.findProperty('probeShots') ?: '120,300,480')
+            systemProperty 'fxeasy.e2e.openTerminal', (project.findProperty('probeTerminal') ?: '0')
+            systemProperty 'fxeasy.probe.inventoryTick', (project.findProperty('probeInventory') ?: '0')
+            systemProperty 'fxeasy.probe.terminalTick', (project.findProperty('probeTerminalTick') ?: '0')
+            systemProperty 'fxeasy.probe.clicks', (project.findProperty('probeClicks') ?: '')
+            systemProperty 'fxeasy.probe.currency', (project.findProperty('probeCurrency') ?: '0')
+            systemProperty 'fxeasy.probe.currencyId', (project.findProperty('probeCurrencyId') ?: 'gold')
+            systemProperty 'fxeasy.probe.width', (project.findProperty('probeWidth') ?: '0')
+            systemProperty 'fxeasy.probe.height', (project.findProperty('probeHeight') ?: '0')
+            if (project.hasProperty('probeHardcoded')) {
+                systemProperty 'fxeasy.probe.hardcoded', 'true'
+            }
+        }
+
+        clientRegression {
+            client()
+            programArguments.addAll '--quickPlaySingleplayer', (project.findProperty('regressionWorld') ?: 'probe')
+            programArguments.addAll '--username', (project.findProperty('regressionUser') ?: 'Regress')
+            systemProperty 'fxeasy.regression', 'true'
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            clientData()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:6.1.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation "net.neoforged:testframework:${neo_version}"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "com.pppopipupu.fxeasy.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "CommonHooksMixin",
+    "CrafterBlockMixin",
+    "EnderDragonFightMixin",
+    "LivingEntityMixin",
+    "PiglinAiMixin",
+    "PistonBaseBlockMixin",
+    "RaidsMixin",
+    "ResultSlotMixin",
+    "ServerExplosionMixin",
+    "SmithingMenuMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

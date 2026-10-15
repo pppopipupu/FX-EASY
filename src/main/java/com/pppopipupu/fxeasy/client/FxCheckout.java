@@ -35,7 +35,6 @@ import net.minecraft.util.ARGB;
 /// the player's to close, and closing it pays for nothing.
 public final class FxCheckout {
 
-    /// Rows of currencies the card shows at once before the list scrolls, which is the tallest card it draws.
     private static final int MAX_ROWS = 5;
     private static final int CARD_WIDTH = 272;
     private static final int PAD = 8;
@@ -64,8 +63,6 @@ public final class FxCheckout {
     private int scroll;
     private boolean logged;
 
-    /// Whether the overlay is up. The screen asks this before it draws it and before it hands a click to anything
-    /// behind it.
     public boolean active() {
         return this.visible;
     }
@@ -75,7 +72,6 @@ public final class FxCheckout {
         return this.input;
     }
 
-    /// The tier being paid for.
     public Membership plan() {
         return this.plan;
     }
@@ -85,8 +81,6 @@ public final class FxCheckout {
         return this.paying;
     }
 
-    /// Opens the checkout of a tier, starting on the currency the plan is priced in when the account holds it
-    /// and otherwise on the currency it holds most of, which is the one that is likeliest to cover the total.
     public void open(Membership plan, FxClientState state) {
         this.plan = plan;
         this.paying = defaultPaying(plan, state);
@@ -185,8 +179,6 @@ public final class FxCheckout {
         }
     }
 
-    /// The receipt of the period being bought, one line per figure with the label against the left edge of the
-    /// card and the value against its right edge.
     private void receipt(GuiGraphicsExtractor graphics, Font font, FxClientState state, ScreenRectangle card,
             long total) {
         int x = card.left() + PAD;
@@ -202,7 +194,6 @@ public final class FxCheckout {
         figure(graphics, font, x, right, y, "fxeasy.checkout.total", total(total), FxTheme.ACCENT);
     }
 
-    /// One line of the receipt, which is drawn at [y] and returns where the line under it stands.
     private static int figure(GuiGraphicsExtractor graphics, Font font, int x, int right, int y, String key,
             Component value, int colour) {
         FxUi.text(graphics, font, x, y, FxText.get(key), FxTheme.MUTED);
@@ -210,9 +201,6 @@ public final class FxCheckout {
         return y + LINE;
     }
 
-    /// One currency the account could pay in: the item it is made of, its code, the free margin that backs it and
-    /// whether it is the one the payment is set to - with the row of a currency that cannot cover the total drawn
-    /// as short. Clicking a row moves the payment to that currency.
     private void row(GuiGraphicsExtractor graphics, Font font, FxClientState state, Currency currency, int index,
             int count, long total, int designWidth, int designHeight) {
         ScreenRectangle area = rowArea(index, count, designWidth, designHeight);
@@ -323,8 +311,6 @@ public final class FxCheckout {
         return quote(state).totalMicro();
     }
 
-    /// The figures of the receipt for the payment as it stands: the converted amount and the total, which the
-    /// plan, the currency, the rate of the market and the plan of the account all decide.
     private Quote quote(FxClientState state) {
         return quote(this.plan, this.paying, rate(state), state.feeDiscount());
     }
@@ -371,8 +357,6 @@ public final class FxCheckout {
         return Long.toString(Membership.PERIOD_TICKS / MarketEngine.TICKS_PER_DAY);
     }
 
-    /// The card itself, which is as tall as its header, its receipt, its rows and its footer need and never
-    /// taller than the panel.
     public static ScreenRectangle card(int designWidth, int designHeight) {
         int width = Math.min(CARD_WIDTH, designWidth - FxTheme.PAD * 2);
         int wanted = listOffset() + MAX_ROWS * ROW + FxTheme.GAP + 1 + FxTheme.GAP + LINE + FxTheme.GAP
@@ -381,8 +365,6 @@ public final class FxCheckout {
         return FxUi.rect((designWidth - width) / 2, (designHeight - height) / 2, width, height);
     }
 
-    /// Distance from the top of a card to the first row of its currency list: the title, the subtitle under it,
-    /// the separator, the receipt, the second separator and the heading of the currencies.
     private static int listOffset() {
         return PAD + LINE + LINE + FxTheme.GAP + 1 + FxTheme.GAP + RECEIPT * LINE + FxTheme.GAP + 1 + FxTheme.GAP
                 + LINE + FxTheme.GAP;
@@ -405,7 +387,6 @@ public final class FxCheckout {
         return FxUi.rect(card.right() - PAD - CLOSE_WIDTH, card.top() + PAD - 1, CLOSE_WIDTH, LINE + 1);
     }
 
-    /// The list of currencies, which is what the wheel scrolls while the mouse is over it.
     public static ScreenRectangle listArea(int designWidth, int designHeight) {
         ScreenRectangle card = card(designWidth, designHeight);
         int top = card.top() + listOffset();
@@ -414,7 +395,6 @@ public final class FxCheckout {
                 Math.max(ROW, bottom - top));
     }
 
-    /// Rows of currencies the card of this frame shows at once.
     public static int rows(int designWidth, int designHeight) {
         return Math.max(1, listArea(designWidth, designHeight).height() / ROW);
     }

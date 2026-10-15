@@ -6,11 +6,8 @@ import module java.base;
 /// message, and a rumour that turns out to be false gives back only the premium it had already applied.
 public enum MarketEventQuality {
 
-    /// The platform saw the fact itself, in the world it runs.
     CONFIRMED("confirmed"),
-    /// The platform is modelling a consequence it has not observed directly.
     ESTIMATED("estimated"),
-    /// Unverified market talk, announced as such.
     RUMOR("rumor"),
     /// A joke, marked as one, with no price contribution at all.
     ENTERTAINMENT("entertainment");

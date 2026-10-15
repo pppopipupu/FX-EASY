@@ -61,8 +61,6 @@ public final class Account {
         return this.closedTrades;
     }
 
-    /// Whether this player has been through the account opening, which the panel asks for before it lets the
-    /// player near the terminal at all.
     public boolean opened() {
         return this.opened;
     }
@@ -92,7 +90,6 @@ public final class Account {
         return true;
     }
 
-    /// Whether the platform has already handed this account its welcome capital.
     public boolean bonusPaid() {
         return this.bonusPaid;
     }
@@ -113,8 +110,6 @@ public final class Account {
         return true;
     }
 
-    /// Whether this player has already been walked through the terminal, which the panel asks for before it
-    /// offers the first run tour again.
     public boolean tutorialSeen() {
         return this.tutorialSeen;
     }
@@ -143,12 +138,10 @@ public final class Account {
         this.autoRenew = autoRenew;
     }
 
-    /// Highest leverage an order of this account may name, which is what its plan buys.
     public int maxLeverage() {
         return this.membership.maxLeverage();
     }
 
-    /// What the plan of this account takes off every cost the platform charges.
     public FeeDiscount feeDiscount() {
         return this.membership.discount();
     }
@@ -161,7 +154,6 @@ public final class Account {
         this.autoRenew = renew;
     }
 
-    /// Drops the account back to no plan, which is what a period that could not be renewed does.
     public void endMembership() {
         this.membership = Membership.NONE;
         this.membershipUntil = 0L;
@@ -192,7 +184,6 @@ public final class Account {
         return index < 0 || index >= this.lounge.size() ? null : this.lounge.remove(index);
     }
 
-    /// Restores the plan of the account and the gifts its lounge holds from a save.
     public void restoreMembership(Membership plan, long untilTick, boolean renew, long next, List<LoungeGift> gifts) {
         this.membership = plan;
         this.membershipUntil = untilTick;

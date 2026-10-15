@@ -56,12 +56,10 @@ public record EconomyBucket(long[] supplyAtoms, long[][] terminalUseAtoms, int[]
         return this.supplyAtoms[Currencies.index(currency)];
     }
 
-    /// Terminal use atoms of one source kind and currency.
     public long terminalUseAtoms(EconomySourceKind kind, Currency currency) {
         return this.terminalUseAtoms[kind.ordinal()][Currencies.index(currency)];
     }
 
-    /// Terminal use atoms of one currency across every source kind.
     public long terminalUseAtoms(Currency currency) {
         long total = 0L;
         for (long[] row : this.terminalUseAtoms) {
@@ -104,7 +102,6 @@ public record EconomyBucket(long[] supplyAtoms, long[][] terminalUseAtoms, int[]
             this.sourceCounts[kind.ordinal()] = increment(this.sourceCounts[kind.ordinal()]);
         }
 
-        /// Records activity evidence, which carries no atoms at all.
         public void addActivity(EconomySourceKind kind) {
             require(kind.activity(), kind, "is not an activity source");
             this.sourceCounts[kind.ordinal()] = increment(this.sourceCounts[kind.ordinal()]);

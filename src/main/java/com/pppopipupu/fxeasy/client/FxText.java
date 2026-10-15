@@ -45,12 +45,10 @@ public final class FxText {
         return Component.translatable(key, argument).withStyle(STYLE);
     }
 
-    /// A key whose wording carries more than one value, which the two argument overload above cannot express.
     public static Component get(String key, String... arguments) {
         return Component.translatable(key, (Object[]) arguments).withStyle(STYLE);
     }
 
-    /// One line in the large face, for the amount a card advertises.
     public static Component big(String text) {
         return Component.literal(text).withStyle(BIG_STYLE);
     }

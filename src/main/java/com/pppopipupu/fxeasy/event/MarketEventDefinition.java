@@ -19,9 +19,7 @@ public record MarketEventDefinition(String id, MarketEventKind kind, MarketEvent
         /// Production, terminal use or inventory pressure the world itself produced. Priced by the fundamental
         /// component, never by the event layer.
         SUPPLY("supply"),
-        /// A real use of a currency that reabsorbs supply.
         USE("use"),
-        /// The cost or convenience of trading itself, e.g. a trade network that is disrupted.
         LIQUIDITY("liquidity"),
         /// An expectation about the future, which a later fact can confirm or deny.
         EXPECTATION("expectation"),
@@ -82,7 +80,6 @@ public record MarketEventDefinition(String id, MarketEventKind kind, MarketEvent
         return this.attackTicks + this.holdTicks + this.releaseTicks;
     }
 
-    /// Whether this event may move a price at all.
     public boolean prices() {
         return this.channel != ImpactChannel.NONE;
     }

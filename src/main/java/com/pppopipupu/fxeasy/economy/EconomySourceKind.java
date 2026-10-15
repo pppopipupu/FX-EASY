@@ -77,12 +77,10 @@ public enum EconomySourceKind {
         return this.id;
     }
 
-    /// Whether this kind feeds new usable supply into the economy.
     public boolean primarySupply() {
         return this.kind == Kind.PRIMARY_SUPPLY;
     }
 
-    /// Whether this kind is a terminal use that reabsorbs supply.
     public boolean terminalUse() {
         return this.kind == Kind.TERMINAL_USE;
     }

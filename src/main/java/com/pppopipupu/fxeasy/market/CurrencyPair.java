@@ -39,7 +39,6 @@ public record CurrencyPair(Currency base, Currency quote, int index) {
         return this.base.id() + "_" + this.quote.id();
     }
 
-    /// Mid price of the pair: items of the quote one item of the base is worth right now.
     public double mid(MarketEngine market) {
         return market.rate(this.base, this.quote);
     }

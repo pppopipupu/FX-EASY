@@ -142,14 +142,12 @@ public record FxScriptedClicks(FxTab tab, FxClientState state, FxTerminalLayout 
             case "positions.close_all" ->
                 this.tab == FxTab.POSITIONS ? FxPositions.closeAllArea(this.layout.sideInner()) : null;
             case "trade.open" -> this.tab == FxTab.TRADE ? FxTicket.openArea(this.layout.sideInner()) : null;
+            case "chart.plot" -> this.tab.chart() ? this.layout.plot() : null;
             case "basis.next" -> FxControlRow.basisCell(controls);
             default -> this.namedArea(target);
         };
     }
 
-    /// The cells that carry a name of their own: a row of the market list, a margin currency cell, a timeframe
-    /// cell, a chart style cell, a position row and its close cell, a card of the shop, a gift of the lounge and
-    /// the currency row of the account page.
     private ScreenRectangle namedArea(String target) {
         FxControlRow.Geometry controls = this.controls();
         if (target.startsWith("shop.buy.")) {
@@ -233,7 +231,6 @@ public record FxScriptedClicks(FxTab tab, FxClientState state, FxTerminalLayout 
         return this.accountCurrencyArea(target);
     }
 
-    /// The index a target name ends in, or null when it does not end in one.
     private static Integer index(String target, String prefix) {
         try {
             return Integer.valueOf(Integer.parseInt(target.substring(prefix.length()).trim()));
@@ -242,7 +239,6 @@ public record FxScriptedClicks(FxTab tab, FxClientState state, FxTerminalLayout 
         }
     }
 
-    /// The cells of the card of the walkthrough step that is up, or null while the walkthrough is not.
     private ScreenRectangle tutorialCell(String target) {
         if (!this.overlays.tutorial().active()) {
             return null;
@@ -257,7 +253,6 @@ public record FxScriptedClicks(FxTab tab, FxClientState state, FxTerminalLayout 
         };
     }
 
-    /// The cells of the step of the account opening that is on screen, or null while the opening is not up.
     private FxAccountOpening.Cells openingCells() {
         if (!this.overlays.opening().active()) {
             return null;

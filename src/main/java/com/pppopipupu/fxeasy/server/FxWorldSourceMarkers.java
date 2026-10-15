@@ -64,7 +64,6 @@ public final class FxWorldSourceMarkers {
         return false;
     }
 
-    /// Remembers that a resource block stands here because something placed it.
     public static void markPlaced(ServerLevel level, BlockPos pos, BlockState state) {
         if (!FxConfig.get().oreMarkersEnabled() || FxCurrencyAtoms.naturalChannel(state) == null) {
             return;
@@ -151,10 +150,6 @@ public final class FxWorldSourceMarkers {
 
         public boolean isExcluded() {
             return this.excluded;
-        }
-
-        public int size() {
-            return this.positions.length;
         }
 
         public boolean contains(long position) {

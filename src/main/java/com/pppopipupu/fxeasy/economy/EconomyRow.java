@@ -51,7 +51,6 @@ public record EconomyRow(Clock clock, Flow flow, Drivers drivers, CapacityValues
                 CapacityValues.ofCapacity(), 1.0D, 0, 0, List.of());
     }
 
-    /// The market clock the economy runs on, and the boundaries it counts towards.
     public record Clock(long marketTick, long bucketStart, long nextDayTick, long rolloverDay) {
 
         public static final Codec<Clock> CODEC = RecordCodecBuilder.create((RecordCodecBuilder.Instance<Clock> instance) -> instance.group(
@@ -75,8 +74,6 @@ public record EconomyRow(Clock clock, Flow flow, Drivers drivers, CapacityValues
         }
     }
 
-    /// What the market has been asked to price and how much of it it has actually applied: the world's target,
-    /// the event layer's component, the per tick rate and the running totals of the open bucket.
     public record Drivers(List<CurrencyAmount> fundamental, List<CurrencyAmount> event, List<CurrencyAmount> target,
             List<CurrencyAmount> rate, List<CurrencyAmount> applied, List<CurrencyAmount> appliedLastBucket) {
 

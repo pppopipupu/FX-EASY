@@ -9,7 +9,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-/// Sent when the terminal opens and whenever the selected pair or timeframe changes.
 public record FxSubscribePayload(int pairIndex, int timeframeIndex) implements CustomPacketPayload {
 
     public static final Type<FxSubscribePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(FxEasy.MODID, "subscribe"));

@@ -6,6 +6,7 @@ import com.pppopipupu.fxeasy.economy.EconomyConstants;
 import com.pppopipupu.fxeasy.economy.EconomySourceKind;
 import com.pppopipupu.fxeasy.market.Currencies;
 import com.pppopipupu.fxeasy.market.Currency;
+import com.pppopipupu.fxeasy.market.MarketEngine;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -76,6 +77,13 @@ public final class FxConfig {
     private static final ModConfigSpec.LongValue WELCOME_ITEMS = BUILDER
             .comment("Items of that currency a new account is handed once.")
             .defineInRange("market.welcome_items", 10L, 0L, 1_000_000L);
+    private static final ModConfigSpec.DoubleValue VOLATILITY_SCALE = BUILDER
+            .comment("How far the rates of this world swing, as a multiple of the calibration the market ships",
+                    "with. It multiplies the daily volatility of every currency before anything reads it, so the",
+                    "noise and the reference the volatility regime is measured against move together: a world",
+                    "tuned higher trades a wilder market without the platform reading it as a nervous one.",
+                    "Read when a world loads, never on the tick path.")
+            .defineInRange("market.volatility_scale", MarketEngine.DEFAULT_VOLATILITY_SCALE, 0.1D, 8.0D);
 
     private static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -114,6 +122,7 @@ public final class FxConfig {
                 TRADE_REGION_LIMIT.get(),
                 WELCOME_CURRENCY.get(),
                 WELCOME_ITEMS.get(),
+                VOLATILITY_SCALE.get(),
                 sourceMask(ENABLED_SOURCES.get()));
     }
 
@@ -164,7 +173,7 @@ public final class FxConfig {
             double eventBaseChance, int maxPricedEvents, boolean accountQuotaEnabled,
             boolean serverQuotaEnabled, double accountQuotaDays, double serverQuotaDays, boolean collectEnabled,
             boolean oreMarkersEnabled, int oreMarkerBudget, int tradeRegionLimit, String welcomeCurrencyId,
-            long welcomeItems, boolean[] enabledSources) {
+            long welcomeItems, double volatilityScale, boolean[] enabledSources) {
 
         public Snapshot {
             enabledSources = enabledSources.clone();
@@ -177,7 +186,8 @@ public final class FxConfig {
             boolean[] mask = new boolean[EconomySourceKind.COUNT];
             Arrays.fill(mask, true);
             return new Snapshot(true, EconomyConstants.TICKS_PER_DAY, 0.35D, 3, true,
-                    true, 0.5D, 4.0D, true, true, 512, 1024, "diamond", 10L, mask);
+                    true, 0.5D, 4.0D, true, true, 512, 1024, "diamond", 10L,
+                    MarketEngine.DEFAULT_VOLATILITY_SCALE, mask);
         }
 
         public boolean collects(EconomySourceKind kind) {

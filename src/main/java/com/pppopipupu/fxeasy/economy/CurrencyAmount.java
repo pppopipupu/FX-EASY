@@ -29,7 +29,6 @@ public record CurrencyAmount(String currency, double amount) {
         }
     }
 
-    /// An all zero amount list, one entry per traded currency.
     public static List<CurrencyAmount> zero() {
         return of(new double[Currencies.count()]);
     }
@@ -60,7 +59,6 @@ public record CurrencyAmount(String currency, double amount) {
         return values;
     }
 
-    /// The amount of one currency in a saved list, zero when the list does not name it.
     public static double get(List<CurrencyAmount> amounts, Currency currency) {
         String id = currency.id();
         for (CurrencyAmount amount : amounts) {

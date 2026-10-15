@@ -288,8 +288,6 @@ class FxClientStateTest {
         return account(Membership.NONE, 0L, false, List.of(), riskRoom, positions);
     }
 
-    /// The same account on a plan of the subscription: the plan by id, the market tick its period runs to,
-    /// whether the platform charges another period when it ends and what its lounge is holding.
     private static FxAccountPayload account(Membership plan, long until, boolean autoRenew, List<ItemStack> lounge,
             double[] riskRoom, FxPositionPayload... positions) {
         long[] balances = new long[Currencies.count()];

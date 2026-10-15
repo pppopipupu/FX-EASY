@@ -92,7 +92,6 @@ public final class FxTradingService {
         long gameTime = server.overworld().getGameTime();
         FxState state = FxState.restore(data.snapshot(), server.overworld().getSeed(), gameTime);
         FxWorldEconomyTracker tracker = new FxWorldEconomyTracker(state);
-        tracker.restore(data.snapshot().economy().orElse(null));
         tracker.attach();
         tracker.onFact(state.events()::observe);
         instance = new FxTradingService(server, data, state, tracker);
@@ -207,7 +206,7 @@ public final class FxTradingService {
         boolean boundary = this.economy.advanceClock(this.server.getPlayerList().getPlayerCount());
         if (boundary) {
             this.economy.closeBucket();
-            this.tracker.onBucketBoundary(this.economy.marketTick());
+            this.tracker.onBucketBoundary();
             market.resetBucketAttribution();
         }
         this.events.tick(this.economy.marketTick(), this.economy, market.eventRng());

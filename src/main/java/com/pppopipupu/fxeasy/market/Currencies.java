@@ -101,8 +101,6 @@ public final class Currencies {
         return current.pairs().get(index);
     }
 
-    /// The set a world starts on when no configuration names one, which is the five items this economy opened
-    /// with.
     public static List<Currency> defaults() {
         return List.of(
                 new Currency("dirt", "DIR", "Dirt", Map.of("zh_cn", "土块"),

@@ -14,7 +14,6 @@ public record EventRow(List<MarketEventState> events, List<CooldownRow> cooldown
 
     /// Events kept after they ended, newest last. A bounded history is all the terminal shows.
     public static final int HISTORY_CAPACITY = 128;
-    /// Cooldowns are pruned once they are this far in the past.
     public static final long COOLDOWN_RETENTION_TICKS = 20L * 24000L;
 
     public static final Codec<EventRow> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -36,7 +35,6 @@ public record EventRow(List<MarketEventState> events, List<CooldownRow> cooldown
         return new EventRow(List.of(), List.of(), List.of(), 0L);
     }
 
-    /// When one event family may next be considered, and how many times it has already run.
     public record CooldownRow(String family, long readyTick, int runs) {
 
         public static final Codec<CooldownRow> CODEC = RecordCodecBuilder.create(instance -> instance.group(

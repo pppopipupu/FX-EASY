@@ -157,7 +157,6 @@ public final class MarketEventEngine {
         return this.revision;
     }
 
-    /// The persisted layer: running and archived events, family cooldowns, one shot milestones and the revision.
     public EventRow snapshot() {
         List<MarketEventState> events = new ArrayList<>(this.running.size() + this.archive.size());
         int runningFrom = Math.max(0, this.running.size() - EventRow.HISTORY_CAPACITY);

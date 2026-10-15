@@ -85,7 +85,6 @@ public final class FxShop {
     private boolean logged;
     private int poolScroll;
 
-    /// One tier of the page: the plan, the picture of its character and the pixel size of that file.
     private record Tier(Membership plan, Identifier art, int width, int height) {
     }
 
@@ -99,8 +98,6 @@ public final class FxShop {
             ScreenRectangle price, ScreenRectangle period, ScreenRectangle detail, ScreenRectangle action) {
     }
 
-    /// The cells of the subscription bar under the cards: the switch that turns the renewal off and on again and
-    /// the button that opens the lounge.
     public record FooterCells(ScreenRectangle renew, ScreenRectangle lounge) {
     }
 
@@ -151,8 +148,6 @@ public final class FxShop {
     record Detail(List<Line> lines, int entries) {
     }
 
-    /// Draws the page and applies what the player clicked. Returns what the click asked the screen to open in
-    /// front of the page, which is the checkout of a tier or the lounge of the plan the account holds.
     public Request draw(GuiGraphicsExtractor graphics, Font font, FxClientState state, FxInput input,
             ScreenRectangle area) {
         List<CardCells> cards = cards(area);
@@ -202,8 +197,6 @@ public final class FxShop {
         return button(graphics, font, input, cells, plan, current, owned);
     }
 
-    /// The top of a card: the name of the tier with the state it is in, the character it is sold with, the price
-    /// of one period next to the icon of the currency it is charged in and how long that period runs.
     private static void header(GuiGraphicsExtractor graphics, Font font, CardCells cells, Membership plan,
             boolean current, boolean owned) {
         ScreenRectangle card = cells.card();
@@ -230,10 +223,6 @@ public final class FxShop {
         FxUi.separator(graphics, x, card.right() - PAD, cells.period().bottom() + 1);
     }
 
-    /// What the tier buys, written down the card under its price: the lines of the tier and, for the tier that
-    /// carries a lounge, the entries of the pool that lounge draws from. The lines are spread over the room the
-    /// card leaves between its price and its button when the whole of them fits there, and the pool is a list of
-    /// its own, scrolled by the wheel while the mouse is over it, when it does not.
     private void detail(GuiGraphicsExtractor graphics, Font font, FxClientState state, FxInput input,
             CardCells cells, Membership plan) {
         ScreenRectangle area = cells.detail();
@@ -280,10 +269,6 @@ public final class FxShop {
         }
     }
 
-    /// One line of the detail: the label against the left edge of [area] and the value against its right edge. A
-    /// heading and a note carry no value and stand alone, and a note is drawn further in, so it reads as the line
-    /// it explains. A label that would run into its value is cut where the value starts rather than drawn under
-    /// it.
     private static void row(GuiGraphicsExtractor graphics, Font font, ScreenRectangle area, int y, Line line) {
         int x = area.left() + (line.note() ? NOTE_INDENT : 0);
         if (line.value() == null) {
@@ -359,9 +344,6 @@ public final class FxShop {
         return lines;
     }
 
-    /// One cost of the platform with what the plan takes off it: the share of the cost the discount carries, or
-    /// the plain rate of the platform when the plan takes nothing off it, with the note that says what that cost
-    /// is where the card has the room for it.
     private static void fee(List<Line> lines, String labelKey, String noteKey, double discount, boolean notes) {
         boolean reduced = discount > 0.0D;
         lines.add(Line.of(labelKey, reduced
@@ -421,7 +403,6 @@ public final class FxShop {
         return total;
     }
 
-    /// How many entries of a pool can be drawn at all, which is what the heading of the pool writes out.
     static int usable(LoungeFile.Pool pool) {
         int count = 0;
         for (LoungeFile.Entry entry : pool.entries()) {
@@ -493,7 +474,6 @@ public final class FxShop {
         return cards;
     }
 
-    /// The subscription bar at the bottom of the page.
     public static ScreenRectangle footerArea(ScreenRectangle area) {
         return FxUi.rect(area.left() + PAD, area.bottom() - PAD - FxTheme.ROW, Math.max(1, area.width() - PAD * 2),
                 FxTheme.ROW);

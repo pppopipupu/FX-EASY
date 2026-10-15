@@ -3,7 +3,6 @@ package com.pppopipupu.fxeasy.server;
 import module java.base;
 
 import com.pppopipupu.fxeasy.FxConfig;
-import com.pppopipupu.fxeasy.economy.EconomyConstants;
 import com.pppopipupu.fxeasy.economy.EconomyRow;
 import com.pppopipupu.fxeasy.economy.EconomySourceKind;
 import com.pppopipupu.fxeasy.economy.WorldEconomyState;
@@ -56,7 +55,6 @@ public final class FxWorldEconomyTracker {
     final FxCommittedProduction production;
     final FxMachineFacts machines;
 
-    private long newestBucketStart;
     private boolean bucketSealed;
     private int ticks;
 
@@ -100,27 +98,10 @@ public final class FxWorldEconomyTracker {
         return instance;
     }
 
-    /// Registers a listener for every recorded fact, supply, terminal use and activity alike.
     public void onFact(Consumer<WorldActivity> listener) {
         this.listeners.add(listener);
     }
 
-    /// Restores the bounded state that is not stored per chunk; a null row means a world that never produced
-    /// anything, so only the clock is carried over and the rest is rebuilt from what the world does next.
-    public void restore(EconomyRow row) {
-        this.regions.reset();
-        this.machines.reset();
-        this.loot.reset();
-        this.excludedChunks.clear();
-        Arrays.fill(this.openAtoms, 0L);
-        Arrays.fill(this.newestAtoms, 0L);
-        this.bucketSealed = false;
-        this.newestBucketStart = row == null
-                ? 0L
-                : row.clock().bucketStart() - EconomyConstants.TICKS_PER_BUCKET;
-    }
-
-    /// The economy row this tracker's facts are folded into, for the saved data.
     public EconomyRow snapshot() {
         return this.economy.snapshot();
     }
@@ -151,16 +132,14 @@ public final class FxWorldEconomyTracker {
         }
     }
 
-    public void onBucketBoundary(long marketTick) {
+    public void onBucketBoundary() {
         System.arraycopy(this.openAtoms, 0, this.newestAtoms, 0, this.openAtoms.length);
         Arrays.fill(this.openAtoms, 0L);
         this.bucketSealed = true;
-        this.newestBucketStart = marketTick - EconomyConstants.TICKS_PER_BUCKET;
         this.regions.clearUnsupported();
         prune();
     }
 
-    /// Whether the level still holds a trade region that saw a real trade inside the recency window.
     public boolean levelHasRecentTrades(ResourceKey<Level> dimension) {
         return this.regions.levelHasRecentTrades(dimension);
     }
@@ -198,10 +177,6 @@ public final class FxWorldEconomyTracker {
             }
         }
         return Arrays.copyOf(atoms, count);
-    }
-
-    public long newestBucketStart() {
-        return this.newestBucketStart;
     }
 
     static void noteExcludedChunk(ServerLevel level, ChunkPos pos) {

@@ -21,8 +21,6 @@ import net.minecraft.resources.Identifier;
 /// of the shortest panel the terminal draws.
 class FxShopLayoutTest {
 
-    /// A pool that names one gift this build can hand over, one it cannot and one it may not draw at all, which
-    /// is what the page has to weigh the shares of the gifts against.
     private static final LoungeFile.Pool POOL = new LoungeFile.Pool(24_000L, 10, List.of(
             new LoungeFile.Entry(Identifier.parse("minecraft:diamond"), 1, 1, Optional.empty()),
             new LoungeFile.Entry(Identifier.parse("minecraft:apple"), 2, 3, Optional.empty()),

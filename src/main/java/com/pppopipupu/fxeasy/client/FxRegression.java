@@ -424,7 +424,6 @@ public final class FxRegression {
         return panel == null ? -1 : panel.testTutorialStep();
     }
 
-    /// The terminal has to be open and show the cell, which is how a step asserts a page or an overlay is up.
     private static String upCheck(String target) {
         return up(target) ? null : "the terminal does not show " + target;
     }

@@ -20,7 +20,6 @@ import net.minecraft.util.ARGB;
 /// registration, the drawing and what a click on a button means.
 public final class FxAccountOpening {
 
-    /// What the player asked for by clicking, which the screen turns into a request.
     public enum Action {
         NONE,
         BACK,
@@ -88,7 +87,6 @@ public final class FxAccountOpening {
         return this.step;
     }
 
-    /// Name typed into the registration, which is what the ledger is written with.
     public String holder() {
         return this.name.text().strip();
     }
@@ -110,8 +108,6 @@ public final class FxAccountOpening {
         this.message = "";
     }
 
-    /// Ends the flow without a registration: the platform answered that the account is already open, which is
-    /// what happens when it was filed from another client or by an automated run.
     public void dismiss() {
         this.active = false;
         this.message = "";

@@ -7,11 +7,15 @@ import com.pppopipupu.fxeasy.content.FxItems;
 import com.pppopipupu.fxeasy.datagen.FxLanguage;
 import com.pppopipupu.fxeasy.datagen.FxModels;
 import com.pppopipupu.fxeasy.datagen.FxRecipes;
+import com.pppopipupu.fxeasy.datagen.FxStructures;
+import com.pppopipupu.fxeasy.datagen.FxVillages;
 import com.pppopipupu.fxeasy.gametest.FxEconomyGameTests;
 import com.pppopipupu.fxeasy.gametest.FxMarketGameTests;
+import com.pppopipupu.fxeasy.gametest.FxVillageGameTests;
 import com.pppopipupu.fxeasy.net.FxNetwork;
 import com.pppopipupu.fxeasy.server.FxTradingService;
 import com.pppopipupu.fxeasy.server.FxWorldEconomyTracker;
+import net.minecraft.server.packs.PackType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -35,6 +39,7 @@ public final class FxEasy {
         FxNetwork.register(modBus);
         FxMarketGameTests.register(modBus);
         FxEconomyGameTests.register(modBus);
+        FxVillageGameTests.register(modBus);
         FxWorldEconomyTracker.register(modBus);
         modBus.addListener(FxEasy::gatherData);
         modBus.addListener(FxEasy::onConfigChanged);
@@ -63,6 +68,9 @@ public final class FxEasy {
         event.createProvider(output -> new FxLanguage(output, "zh_cn"));
         event.createProvider(FxModels::new);
         event.createProvider(FxRecipes.Runner::new);
+        event.createProvider(FxStructures::new);
+        event.addProvider(new FxVillages(event.getGenerator().getPackOutput(),
+                event.getResourceManager(PackType.SERVER_DATA)));
     }
 
     private static void onServerStarted(ServerStartedEvent event) {

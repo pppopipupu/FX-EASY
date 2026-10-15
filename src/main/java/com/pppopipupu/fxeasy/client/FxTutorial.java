@@ -21,7 +21,6 @@ import net.minecraft.util.Util;
 /// the drawing.
 public final class FxTutorial {
 
-    /// What the player asked for by clicking, which the screen applies to the panel.
     public enum Action {
         NONE,
         BACK,
@@ -63,8 +62,6 @@ public final class FxTutorial {
         this.active = true;
     }
 
-    /// Ends the walkthrough without walking it: the account already saw it, which is what happens when it was
-    /// finished from another client or by an automated run.
     public void dismiss() {
         this.active = false;
     }
@@ -103,7 +100,6 @@ public final class FxTutorial {
         return this.card(graphics, font, input, step, steps, designWidth, designHeight);
     }
 
-    /// Dims everything around the pointed at area, in four fills, so the area itself stays as the panel drew it.
     private void cover(GuiGraphicsExtractor graphics, ScreenRectangle target, int designWidth, int designHeight) {
         FxUi.fill(graphics, 0, 0, designWidth, target.top(), COVER);
         FxUi.fill(graphics, 0, target.bottom(), designWidth, designHeight, COVER);

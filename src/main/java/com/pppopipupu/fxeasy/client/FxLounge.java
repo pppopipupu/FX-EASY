@@ -25,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 /// nothing.
 public final class FxLounge {
 
-    /// Rows the card shows before the list scrolls, which is the tallest card the panel ever draws here.
     private static final int MAX_ROWS = 8;
     private static final int CARD_WIDTH = 250;
     private static final int PAD = 8;
@@ -44,8 +43,6 @@ public final class FxLounge {
     private int scroll;
     private boolean logged;
 
-    /// Whether the overlay is up. The screen asks this before it draws it and before it hands a click to anything
-    /// behind it.
     public boolean active() {
         return this.visible;
     }
@@ -122,7 +119,6 @@ public final class FxLounge {
         }
     }
 
-    /// The card itself, which is as tall as the rows it shows and never taller than the panel.
     public static ScreenRectangle card(int designWidth, int designHeight) {
         int width = Math.min(CARD_WIDTH, designWidth - FxTheme.PAD * 2);
         int wanted = HEADER + ROW * MAX_ROWS + FOOTER;
@@ -135,14 +131,12 @@ public final class FxLounge {
         return FxUi.rect(card.right() - PAD - CLOSE_WIDTH, card.top() + PAD - 1, CLOSE_WIDTH, LINE + 1);
     }
 
-    /// The list of gifts, which is what the wheel scrolls while the mouse is over it.
     public static ScreenRectangle listArea(int designWidth, int designHeight) {
         ScreenRectangle card = card(designWidth, designHeight);
         return FxUi.rect(card.left() + PAD, card.top() + HEADER, Math.max(1, card.width() - PAD * 2),
                 Math.max(ROW, card.height() - HEADER - FOOTER));
     }
 
-    /// Rows the card of this frame shows at once.
     public static int rows(int designWidth, int designHeight) {
         return Math.max(1, listArea(designWidth, designHeight).height() / ROW);
     }

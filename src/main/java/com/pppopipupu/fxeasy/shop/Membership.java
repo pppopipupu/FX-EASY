@@ -66,7 +66,6 @@ public enum Membership {
         return this.priceCurrency;
     }
 
-    /// Items of that currency one period costs.
     public long priceItems() {
         return this.priceItems;
     }
@@ -76,7 +75,6 @@ public enum Membership {
         return this.priceItems * Money.UNIT;
     }
 
-    /// Highest leverage an order of an account on this plan may name.
     public int maxLeverage() {
         return this.maxLeverage;
     }
@@ -85,12 +83,10 @@ public enum Membership {
         return this.discount;
     }
 
-    /// Whether this plan opens the VIP lounge.
     public boolean lounge() {
         return this.lounge;
     }
 
-    /// Whether the shop sells this plan, which the tier without a subscription is not.
     public boolean purchasable() {
         return this != NONE;
     }

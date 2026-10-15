@@ -117,8 +117,6 @@ public final class LoungeFile {
             entries = List.copyOf(entries.subList(0, Math.min(entries.size(), MAX_ENTRIES)));
         }
 
-        /// The pool a world without a file starts on: one gift per economic day, ten gifts held, drawn from the
-        /// valuables, the potions and the food a client of the group would actually want.
         public static Pool defaults() {
             return new Pool(DEFAULT_REFRESH_TICKS, DEFAULT_CAPACITY, List.of(
                     entry("minecraft:enchanted_golden_apple", 1, 1),
@@ -139,7 +137,6 @@ public final class LoungeFile {
                     entry("minecraft:bread", 4, 5)));
         }
 
-        /// One gift drawn by weight, or null when the pool holds nothing it can hand over.
         public LoungeGift roll(Rng rng) {
             int total = 0;
             for (Entry entry : this.entries) {

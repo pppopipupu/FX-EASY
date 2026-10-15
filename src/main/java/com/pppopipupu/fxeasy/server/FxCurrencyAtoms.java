@@ -101,7 +101,6 @@ public final class FxCurrencyAtoms {
         return DIRT_BLOCKS.contains(block) ? EconomySourceKind.DIRT_DIG : null;
     }
 
-    /// The currency a world trades that is backed by this item, or null when none is.
     private static Currency currencyOf(Item item) {
         for (Currency currency : Currencies.all()) {
             if (item == FxCurrencies.item(currency)) {

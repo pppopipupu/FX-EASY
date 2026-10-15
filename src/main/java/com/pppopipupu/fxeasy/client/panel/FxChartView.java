@@ -28,6 +28,9 @@ public final class FxChartView {
     private static final double VOLUME_SHARE = 0.24D;
     private static final int GRID_LINES = 4;
     private static final int TIME_LABELS = 4;
+    private static final int MARKER_RADIUS = 3;
+    private static final int READOUT_GAP = 6;
+    private static final int TIME_TAG = 28;
 
     private int barWidth = 5;
     private int first;
@@ -242,9 +245,10 @@ public final class FxChartView {
                         ARGB.multiplyAlpha(candle.isRising() ? FxTheme.UP : FxTheme.DOWN, 0.55F));
             }
         }
+        int lineColour = seriesColour(candles, start);
         if (!bars) {
             stroke(graphics, closes(candles, start, end), end - start, plot, low, range, priceTop, priceBottom, slot,
-                    candles.getLast().close() >= candles.get(start).open() ? FxTheme.UP : FxTheme.DOWN, true);
+                    lineColour, true);
         } else {
             for (int index = start; index < end; index++) {
                 Candle candle = candles.get(index);
@@ -286,7 +290,10 @@ public final class FxChartView {
         drawMarkers(graphics, start, end, plot, timeAxis, slot);
         if (FxUi.hit(plot, mouseX, mouseY)) {
             crosshair(graphics, font, candles, state, plot, priceAxis, timeAxis, start, end, slot, low, range, priceTop,
-                    priceBottom, mouseX, mouseY);
+                    priceBottom, mouseX, mouseY, bars);
+        } else if (!bars) {
+            circle(graphics, plot, plot.left() + markerColumn(end - start, slot),
+                    priceY(candles.get(end - 1).close(), low, range, priceTop, priceBottom), lineColour);
         }
     }
 
@@ -320,11 +327,32 @@ public final class FxChartView {
     }
 
     /// The series sample under one pixel column of the stroke: a column between two samples moves by the slope of
-    /// that segment, and a column past the last sample repeats it.
+    /// that segment, a column past the last sample is a time the chart holds no price for and draws nothing
+    /// instead of repeating the last one as a flat line into the future, and a window of a single sample carries
+    /// its value on its own column alone.
     static double columnValue(double[] values, int count, double slot, int column) {
-        double position = Math.min(column / slot, count - 1.0D);
+        double position = column / slot;
+        if (count < 1 || position > count - 1.0D) {
+            return Double.NaN;
+        }
+        if (count < 2) {
+            return values[0];
+        }
         int index = Math.min((int) position, count - 2);
         return values[index] + (values[index + 1] - values[index]) * (position - index);
+    }
+
+    /// The column the newest sample of the window stands on. The stroke stops there, and so does the marker that
+    /// follows the pointer, so a circle never lands on a time the chart has no price for.
+    static int markerColumn(int count, double slot) {
+        return (int) ((count - 1) * slot);
+    }
+
+    /// The column the circle takes for a pointer at [mouseX] on a plot starting at [left]: the pointer's own
+    /// column while it is over the series, the first sample's once it runs off the left, and the newest sample's
+    /// once it runs past the end into the future the chart draws nothing in.
+    static int markerColumnAt(int mouseX, int left, int count, double slot) {
+        return Math.clamp(mouseX - left, 0, markerColumn(count, slot));
     }
 
     /// Strokes the series one pixel column at a time, joining each column to the previous one, so a NaN sample
@@ -375,64 +403,130 @@ public final class FxChartView {
 
     private void crosshair(GuiGraphicsExtractor graphics, Font font, List<Candle> candles, FxClientState state,
             ScreenRectangle plot, ScreenRectangle priceAxis, ScreenRectangle timeAxis, int start, int end, double slot,
-            double low, double range, int priceTop, int priceBottom, int mouseX, int mouseY) {
+            double low, double range, int priceTop, int priceBottom, int mouseX, int mouseY, boolean bars) {
+        int count = end - start;
         int index = Math.clamp(start + (int) ((mouseX - plot.left()) / slot), start, end - 1);
         int slotX = barX(plot.left(), (index - start) * slot);
-        int centre = slotX + Math.max(1, (int) (slot * 0.66D)) / 2;
-        int y = Math.clamp(mouseY, priceTop, priceBottom);
         FxUi.fill(graphics, slotX, plot.top(), slotX + Math.max(1, (int) slot), plot.bottom(), FxTheme.SELECTED);
+        int centre;
+        int y;
+        double price;
+        if (bars) {
+            centre = slotX + Math.max(1, (int) (slot * 0.66D)) / 2;
+            y = Math.clamp(mouseY, priceTop, priceBottom);
+            price = low + range * (priceBottom - y) / (priceBottom - priceTop);
+        } else {
+            int column = markerColumnAt(mouseX, plot.left(), count, slot);
+            price = columnValue(closes(candles, start, end), count, slot, column);
+            centre = plot.left() + column;
+            y = priceY(price, low, range, priceTop, priceBottom);
+        }
         FxUi.dashed(graphics, plot.left(), plot.right(), y, FxTheme.CROSSHAIR, 2);
         for (int line = priceTop; line < plot.bottom(); line += 4) {
             FxUi.fill(graphics, centre, line, centre + 1, Math.min(line + 2, plot.bottom()), FxTheme.CROSSHAIR);
         }
-        double price = low + range * (priceBottom - y) / (priceBottom - priceTop);
+        if (!bars) {
+            circle(graphics, plot, centre, y, seriesColour(candles, start));
+        }
         FxControls.tag(graphics, font, FxUi.rect(priceAxis.left(), y - 4, priceAxis.width(), 8),
                 FxText.literal(FxUi.price(price)), FxTheme.AXIS);
+        int age = (candles.size() - 1 - index) * state.selectedTimeframe().ticks() / (int) FxUi.TICKS_PER_MINUTE;
+        int tagX = Math.clamp(centre - TIME_TAG / 2, plot.left(), Math.max(plot.left(), plot.right() - TIME_TAG));
+        FxControls.tag(graphics, font, FxUi.rect(tagX, timeAxis.top(), TIME_TAG, timeAxis.height()),
+                FxText.literal(ageText(age)), FxTheme.AXIS);
+        readout(graphics, font, candles, state, plot, priceTop, index, price, age, mouseX);
+    }
+
+    /// The box that reads the candle under the marker out: the localized name of every field in one column and
+    /// its value in the next, on the half of the plot the pointer is not on, so the point it describes stays
+    /// visible. [price] is what the marker reads, which under the line style is the interpolated rate at the
+    /// pointer rather than the close of the candle it falls in.
+    private void readout(GuiGraphicsExtractor graphics, Font font, List<Candle> candles, FxClientState state,
+            ScreenRectangle plot, int priceTop, int index, double price, int age, int mouseX) {
         Candle candle = candles.get(index);
         Candle last = candles.getLast();
-        int age = (candles.size() - 1 - index) * state.selectedTimeframe().ticks() / (int) FxUi.TICKS_PER_MINUTE;
-        FxControls.tag(graphics, font, FxUi.rect(centre - 14, timeAxis.top(), 28, timeAxis.height()),
-                FxText.literal(ageText(age)), FxTheme.AXIS);
         double versusLast = last.close() == 0.0D ? 0.0D : (price / last.close() - 1.0D) * 100.0D;
         double change = candle.open() == 0.0D ? 0.0D : (candle.close() / candle.open() - 1.0D) * 100.0D;
-        int accent = candle.isRising() ? FxTheme.UP : FxTheme.DOWN;
-        List<Component> lines = new ArrayList<>(9);
-        lines.add(FxText.literal(state.selectedPair().code() + " " + state.selectedTimeframe().label()
-                + " " + ageText(age)));
-        lines.add(FxText.literal("P " + FxUi.price(price) + "  " + FxUi.percent(versusLast)));
-        lines.add(FxText.literal("O " + FxUi.price(candle.open())));
-        lines.add(FxText.literal("H " + FxUi.price(candle.high())));
-        lines.add(FxText.literal("L " + FxUi.price(candle.low())));
-        lines.add(FxText.literal("C " + FxUi.price(candle.close()) + "  " + FxUi.percent(change)));
-        lines.add(FxText.literal("V " + turnover(candle.volume())));
-        addAverage(lines, candles, MA_FAST, index);
-        addAverage(lines, candles, MA_SLOW, index);
+        double amplitude = candle.open() == 0.0D ? 0.0D : (candle.high() - candle.low()) / candle.open() * 100.0D;
+        List<Row> rows = new ArrayList<>(11);
+        rows.add(new Row(null, FxText.literal(state.selectedPair().code() + " " + state.selectedTimeframe().label()
+                + " " + ageText(age))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.rate"),
+                FxText.literal(FxUi.price(price) + "  " + FxUi.percent(versusLast))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.open"), FxText.literal(FxUi.price(candle.open()))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.high"), FxText.literal(FxUi.price(candle.high()))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.low"), FxText.literal(FxUi.price(candle.low()))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.close"),
+                FxText.literal(FxUi.price(candle.close()) + "  " + FxUi.percent(change))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.amplitude"), FxText.literal(FxUi.percent(amplitude))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.volume"), FxText.literal(turnover(candle.volume()))));
+        addAverage(rows, candles, MA_FAST, index);
+        addAverage(rows, candles, MA_SLOW, index);
         List<Component> messages = this.markers.get(index);
         if (messages != null) {
             for (Component message : messages) {
-                lines.add(FxText.join(FxText.get("fxeasy.intel.marker"), message));
+                rows.add(new Row(FxText.get("fxeasy.intel.marker"), message));
+            }
+        }
+        int nameWidth = 0;
+        for (Row row : rows) {
+            if (row.name() != null) {
+                nameWidth = Math.max(nameWidth, font.width(row.name()));
             }
         }
         int width = 0;
-        for (Component line : lines) {
-            width = Math.max(width, font.width(line));
+        for (Row row : rows) {
+            width = Math.max(width, font.width(row.value()) + (row.name() == null ? 0 : nameWidth + READOUT_GAP));
         }
-        int boxX = mouseX <= plot.left() + plot.width() / 2 ? plot.right() - width - FxTheme.PAD * 2 - 3 : plot.left() + 3;
-        int boxY = Math.min(priceTop + 14, plot.bottom() - lines.size() * (font.lineHeight + 1) - FxTheme.PAD * 2);
-        ScreenRectangle box = FxUi.rect(boxX, boxY, width + FxTheme.PAD * 2, lines.size() * (font.lineHeight + 1) + FxTheme.PAD * 2);
+        int boxX = mouseX <= plot.left() + plot.width() / 2
+                ? plot.right() - width - FxTheme.PAD * 2 - 3 : plot.left() + 3;
+        int boxY = Math.min(priceTop + 14, plot.bottom() - rows.size() * (font.lineHeight + 1) - FxTheme.PAD * 2);
+        ScreenRectangle box = FxUi.rect(boxX, boxY, width + FxTheme.PAD * 2,
+                rows.size() * (font.lineHeight + 1) + FxTheme.PAD * 2);
         FxUi.fill(graphics, box.left(), box.top(), box.right(), box.bottom(), FxTheme.TOOLTIP);
-        FxUi.border(graphics, box, ARGB.multiplyAlpha(accent, 0.7F));
+        FxUi.border(graphics, box, ARGB.multiplyAlpha(candle.isRising() ? FxTheme.UP : FxTheme.DOWN, 0.7F));
         int lineY = box.top() + FxTheme.PAD;
-        for (Component line : lines) {
-            FxUi.text(graphics, font, box.left() + FxTheme.PAD, lineY, line, FxTheme.TEXT);
+        for (Row row : rows) {
+            if (row.name() == null) {
+                FxUi.text(graphics, font, box.left() + FxTheme.PAD, lineY, row.value(), FxTheme.TEXT);
+            } else {
+                FxUi.text(graphics, font, box.left() + FxTheme.PAD, lineY, row.name(), FxTheme.MUTED);
+                FxUi.text(graphics, font, box.left() + FxTheme.PAD + nameWidth + READOUT_GAP, lineY, row.value(),
+                        FxTheme.TEXT);
+            }
             lineY += font.lineHeight + 1;
         }
     }
 
-    private static void addAverage(List<Component> lines, List<Candle> candles, int period, int index) {
+    /// One line of the readout: the localized name of a field and its value. A row without a name spans the box,
+    /// which is what the header of the pair and the timeframe is.
+    private record Row(Component name, Component value) {
+    }
+
+    /// A small circle on one point of the series, drawn as a one unit outline so the line stays readable through
+    /// it whatever colour the series carries. It is kept inside [plot]: the newest candle of a window that has
+    /// not filled up yet stands on the first column, and a marker there would spill off the chart and off the
+    /// screen with it.
+    private static void circle(GuiGraphicsExtractor graphics, ScreenRectangle plot, int x, int y, int colour) {
+        int centre = Math.clamp(x, plot.left() + MARKER_RADIUS, plot.right() - MARKER_RADIUS);
+        for (int offset = -MARKER_RADIUS; offset <= MARKER_RADIUS; offset++) {
+            int half = (int) Math.round(Math.sqrt((double) (MARKER_RADIUS * MARKER_RADIUS - offset * offset)));
+            FxUi.fill(graphics, centre - half, y + offset, centre - half + 1, y + offset + 1, colour);
+            FxUi.fill(graphics, centre + half, y + offset, centre + half + 1, y + offset + 1, colour);
+        }
+    }
+
+    /// Colour of the line over the window: the newest close read against the oldest open of the window, so a
+    /// window that fell stays red even while its newest candle recovers.
+    private static int seriesColour(List<Candle> candles, int start) {
+        return candles.getLast().close() >= candles.get(start).open() ? FxTheme.UP : FxTheme.DOWN;
+    }
+
+    private static void addAverage(List<Row> rows, List<Candle> candles, int period, int index) {
         double average = movingAverage(candles, period, index);
         if (!Double.isNaN(average)) {
-            lines.add(FxText.literal("MA" + period + " " + FxUi.price(average)));
+            rows.add(new Row(FxText.get("fxeasy.panel.chart.ma", Integer.toString(period)),
+                    FxText.literal(FxUi.price(average))));
         }
     }
 

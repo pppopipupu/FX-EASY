@@ -76,7 +76,6 @@ final class FxTradeRegions {
         }
     }
 
-    /// Whether the level still holds a trade region that saw a real trade inside the recency window.
     boolean levelHasRecentTrades(ResourceKey<Level> dimension) {
         Long newest = this.newestTradeByDimension.get(dimension);
         return newest != null && this.economy.marketTick() - newest <= TRADE_WINDOW_TICKS;
@@ -142,14 +141,6 @@ final class FxTradeRegions {
         this.tradeRegions.entrySet().removeIf(entry -> tick - entry.getValue() > TRADE_WINDOW_TICKS);
         this.newestTradeByDimension.entrySet().removeIf(entry -> tick - entry.getValue() > TRADE_WINDOW_TICKS);
         this.recentTraders.entrySet().removeIf(entry -> tick - entry.getValue() > TRADE_WINDOW_TICKS);
-    }
-
-    void reset() {
-        this.tradeRegions.clear();
-        this.newestTradeByDimension.clear();
-        this.recentTraders.clear();
-        this.enteredDimensions.clear();
-        this.unsupportedDimensions.clear();
     }
 
     private void evictOldestRegion() {

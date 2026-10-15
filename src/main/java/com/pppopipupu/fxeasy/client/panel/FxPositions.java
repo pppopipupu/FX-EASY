@@ -74,7 +74,6 @@ public final class FxPositions {
         return FxUi.rect(area.left(), area.top(), area.width(), FxTheme.ROW + 2);
     }
 
-    /// The list of position rows, under the close all button and the header of the page.
     public static ScreenRectangle listArea(ScreenRectangle area) {
         int y = area.top() + closeAllArea(area).height() + FxTheme.GAP + 10;
         return FxUi.rect(area.left(), y, area.width() - 4, area.bottom() - y);
@@ -91,7 +90,6 @@ public final class FxPositions {
         return FxUi.rect(list.left(), list.top() + (index - this.scroll) * ROW_HEIGHT, list.width(), ROW_HEIGHT);
     }
 
-    /// The close cell of one position row, which the row draws at its right edge.
     public ScreenRectangle closeArea(ScreenRectangle area, int index) {
         ScreenRectangle row = rowArea(area, index);
         return row == null ? null : FxUi.rect(row.right() - 26, row.top() - 1, 26, FxTheme.ROW + 1);

@@ -19,23 +19,19 @@ public record FeeDiscount(double spread, double slippage, double swap, double co
         conversion = Math.clamp(conversion, 0.0D, 1.0D);
     }
 
-    /// Fraction of the spread a plan still charges.
     public double spreadScale() {
         return 1.0D - this.spread;
     }
 
-    /// Fraction of the slippage magnitude a plan still charges. The chance of a slip is market reality and is
-    /// never discounted, only how far a slipped fill moves.
+    /// The chance of a slip is market reality and is never discounted, only how far a slipped fill moves.
     public double slippageScale() {
         return 1.0D - this.slippage;
     }
 
-    /// Fraction of what a position pays for its carry a plan still charges; a credit is never scaled.
     public double swapScale() {
         return 1.0D - this.swap;
     }
 
-    /// Fraction of the conversion spread a plan still charges.
     public double conversionScale() {
         return 1.0D - this.conversion;
     }

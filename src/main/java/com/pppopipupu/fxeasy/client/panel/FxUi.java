@@ -154,7 +154,6 @@ public final class FxUi {
         text(graphics, font, right - font.width(text), y, text, colour);
     }
 
-    /// A label with its value against a right edge, drawn leftwards. Returns the x the next pair may start at.
     public static int labeledRight(GuiGraphicsExtractor graphics, Font font, int right, int y, Component label, Component value,
             int colour) {
         int cursor = right - font.width(value);
@@ -183,7 +182,6 @@ public final class FxUi {
         elements++;
     }
 
-    /// The part of a file a rectangle is filled with: the four texture coordinates a blit of that file takes.
     record Crop(float u0, float u1, float v0, float v1) {
     }
 

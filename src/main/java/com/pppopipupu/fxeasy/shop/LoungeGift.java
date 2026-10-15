@@ -31,7 +31,6 @@ public record LoungeGift(Identifier item, int count, Identifier potion) {
         return this.potion == null || BuiltInRegistries.POTION.get(this.potion).isPresent();
     }
 
-    /// The stack this gift is handed over as, empty when [resolvable] is false.
     public ItemStack stack() {
         if (!this.resolvable()) {
             return ItemStack.EMPTY;

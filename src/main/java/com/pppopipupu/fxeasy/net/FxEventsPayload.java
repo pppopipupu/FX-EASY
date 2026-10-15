@@ -30,7 +30,6 @@ public record FxEventsPayload(long revision, long asOfMarketTick, List<Event> ev
         events = List.copyOf(events);
     }
 
-    /// One announced message, as the terminal shows it.
     public record Event(String eventId, String rootId, int kind, int quality, int channel, long revision,
             long announcedTick, long endTick, double[] applied, double[] peak, String titleKey, String bodyKey,
             boolean archived) {

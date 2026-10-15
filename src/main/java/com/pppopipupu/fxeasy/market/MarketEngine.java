@@ -24,10 +24,21 @@ public final class MarketEngine {
     public static final double REGIME_FLOOR = 1.0D;
     public static final double REGIME_CEILING = 8.0D;
     /// Share of the daily volatility the residual noise keeps. The world and the event layer take over the rest,
-    /// so a market with no production stays quieter than a pure random walk without ever being pinned.
-    public static final double RESIDUAL_NOISE_SHARE = 0.35D;
+    /// so a market with no production stays quieter than a pure random walk without ever being pinned. The value
+    /// is the calibration the market is tuned to: 1.5 times the daily volatility a currency definition names,
+    /// of which this share stays with the noise.
+    public static final double RESIDUAL_NOISE_SHARE = 0.525D;
+    /// Volatility multiple a world starts a market on. One is the calibration the constants here carry; a server
+    /// may retune the whole market through the configuration, and the market is built with the value a world
+    /// loaded under, so a running market is never retuned in the middle of a bucket.
+    public static final double DEFAULT_VOLATILITY_SCALE = 1.0D;
     private static final double EWMA_ALPHA = 0.01D;
     private static final double EXPECTED_ABS_NORMAL = Math.sqrt(2.0D / Math.PI);
+    /// Expected absolute log return of one market tick, in units of the daily volatility the market walks with:
+    /// the half normal expectation, 1.5 times what a currency definition names. The realised volatility of a
+    /// currency is measured against this, so the regime reads one in a calm market whatever the world is tuned
+    /// to, and the costs that follow the regime do not move with the tuning.
+    private static final double EXPECTED_TICK_RETURN = EXPECTED_ABS_NORMAL * 1.5D;
     /// Domains the event and execution generators are derived under, so a save that only stored the price
     /// generator still reproduces the other two.
     public static final long EVENT_RNG_DOMAIN = 0x51A7E9C4D2B1F803L;
@@ -72,6 +83,17 @@ public final class MarketEngine {
     /// Builds the price process from the three generator states a save carries. The world seed is kept for the
     /// components that are not random at all.
     public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed) {
+        this(worldSeed, priceSeed, eventSeed, executionSeed, DEFAULT_VOLATILITY_SCALE);
+    }
+
+    /// Builds the price process of one world at the volatility the world is tuned to. The scale multiplies what
+    /// the currency definitions name before anything reads it, so a world retunes how far its rates swing in one
+    /// place: the noise keeps its share of the tuned daily volatility and the regime keeps measuring the market
+    /// against the same tuned process.
+    public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed, double volatilityScale) {
+        if (!(volatilityScale > 0.0D) || !Double.isFinite(volatilityScale)) {
+            throw new IllegalArgumentException("volatility scale must be a positive number");
+        }
         this.currencies = Currencies.all();
         this.pairs = Currencies.pairs();
         int count = this.currencies.size();
@@ -95,9 +117,10 @@ public final class MarketEngine {
             int index = index(currency);
             this.origins[index] = Math.log(currency.initialPrice());
             this.logPrices[index] = this.origins[index];
-            this.tickSigmas[index] = currency.dailySigma() * RESIDUAL_NOISE_SHARE / Math.sqrt(TICKS_PER_DAY);
+            double dailySigma = currency.dailySigma() * volatilityScale;
+            this.tickSigmas[index] = dailySigma * RESIDUAL_NOISE_SHARE / Math.sqrt(TICKS_PER_DAY);
             this.tickDrifts[index] = -currency.annualRate() / (double) TICKS_PER_YEAR;
-            this.references[index] = EXPECTED_ABS_NORMAL * currency.dailySigma() / Math.sqrt(TICKS_PER_DAY);
+            this.references[index] = EXPECTED_TICK_RETURN * dailySigma / Math.sqrt(TICKS_PER_DAY);
             this.absReturns[index] = this.references[index];
             this.effectiveRegimes[index] = REGIME_FLOOR;
         }

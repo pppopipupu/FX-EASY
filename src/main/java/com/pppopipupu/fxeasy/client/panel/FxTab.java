@@ -17,13 +17,10 @@ public enum FxTab {
         this.key = key;
     }
 
-    /// Translation key of the label of this page.
     public String key() {
         return this.key;
     }
 
-    /// Whether this page draws the chart column and the side column under it, which is every page but the two
-    /// that take the whole panel themselves: the market list and the shop.
     public boolean chart() {
         return this != MARKET && this != SHOP;
     }

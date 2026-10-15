@@ -24,7 +24,6 @@ class TradeEngineTest {
 
     private static final Currency DIRT = Currencies.byId("dirt");
     private static final Currency GOLD = Currencies.byId("gold");
-    private static final Currency EMERALD = Currencies.byId("emerald");
     private static final Currency DIAMOND = Currencies.byId("diamond");
     private static final CurrencyPair PAIR = CurrencyPair.of(DIRT, GOLD);
     /// Order size the tests trade in, items of the base currency of the pair: one lot is one item, so a notional

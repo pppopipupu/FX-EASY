@@ -2,6 +2,7 @@ package com.pppopipupu.fxeasy.storage;
 
 import module java.base;
 
+import com.pppopipupu.fxeasy.FxConfig;
 import com.pppopipupu.fxeasy.economy.EconomyConstants;
 import com.pppopipupu.fxeasy.economy.WorldEconomyState;
 import com.pppopipupu.fxeasy.event.MarketEventEngine;
@@ -67,7 +68,8 @@ public final class FxState {
         long executionRng = snapshot.executionRng() == Long.MIN_VALUE
                 ? MarketEngine.derive(priceRng, MarketEngine.EXECUTION_RNG_DOMAIN)
                 : snapshot.executionRng();
-        MarketEngine market = new MarketEngine(worldSeed, priceRng, eventRng, executionRng);
+        MarketEngine market = new MarketEngine(worldSeed, priceRng, eventRng, executionRng,
+                FxConfig.get().volatilityScale());
         market.restoreClock(marketTick);
         for (CurrencyRow row : snapshot.currencies()) {
             Currency currency = Currencies.byId(row.currency());
@@ -147,7 +149,6 @@ public final class FxState {
         return this.chartEpoch;
     }
 
-    /// Whether this save predates the world economy, which is what the terminal's migration note reports.
     public boolean migrated() {
         return this.migrated;
     }

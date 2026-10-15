@@ -66,7 +66,7 @@ public final class FxMetrics {
         Currency margin = state.orderMargin(pair);
         FxUi.text(graphics, font, area.left(), y, FxText.get("fxeasy.panel.haircut"), FxTheme.MUTED);
         FxUi.right(graphics, font, half - 2, y, FxText.literal(FxUi.rate(FeeModel.haircut(margin))), FxTheme.TEXT);
-        FxUi.text(graphics, font, area.left(), y, FxText.get("fxeasy.panel.conversion"), FxTheme.MUTED);
+        FxUi.text(graphics, font, half + 2, y, FxText.get("fxeasy.panel.conversion"), FxTheme.MUTED);
         FxUi.right(graphics, font, right, y, FxText.literal(FxUi.rate(state.conversionSpread())), FxTheme.TEXT);
     }
 }

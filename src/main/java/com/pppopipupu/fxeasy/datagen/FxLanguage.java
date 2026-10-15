@@ -36,6 +36,14 @@ public final class FxLanguage extends LanguageProvider {
             new Entry("fxeasy.panel.volatility", "Volatility regime", "波动率倍数"),
             new Entry("fxeasy.panel.chart.candles", "Candles", "K线"),
             new Entry("fxeasy.panel.chart.line", "Line", "折线"),
+            new Entry("fxeasy.panel.chart.rate", "Rate", "汇率"),
+            new Entry("fxeasy.panel.chart.open", "Open", "开盘"),
+            new Entry("fxeasy.panel.chart.high", "High", "最高"),
+            new Entry("fxeasy.panel.chart.low", "Low", "最低"),
+            new Entry("fxeasy.panel.chart.close", "Close", "收盘"),
+            new Entry("fxeasy.panel.chart.amplitude", "Range", "振幅"),
+            new Entry("fxeasy.panel.chart.volume", "Volume", "成交量"),
+            new Entry("fxeasy.panel.chart.ma", "MA %s", "均线 %s"),
             new Entry("fxeasy.panel.empty", "No data yet", "暂无数据"),
             new Entry("fxeasy.panel.offline", "Trading server unreachable", "未连接交易服务器"),
             new Entry("fxeasy.panel.side.buy", "Buy / Long", "买入做多"),
@@ -482,7 +490,6 @@ public final class FxLanguage extends LanguageProvider {
         return ENTRIES;
     }
 
-    /// One key with the wording it has in both shipped locales.
     public record Entry(String key, String english, String chinese) {
     }
 

@@ -35,9 +35,6 @@ public final class FxControlRow {
     /// Row width the chart style cells need before they are drawn, because everything else outranks them.
     private static final int STYLES = 470;
 
-    /// The geometry of the row: the cell the page tabs share, the width of the intel entry and of the display
-    /// currency cell, the cell of the timeframe and chart style cells, and how much room those take on the
-    /// right.
     public record Geometry(ScreenRectangle area, int tabCell, int intelCell, int cell, int basisCell,
             int chartWidth, boolean chartCells, boolean styleCells) {
     }
@@ -106,7 +103,6 @@ public final class FxControlRow {
         return FxUi.rect(last.right() + 4 + index * (geometry.cell() + 1), last.top(), geometry.cell(), FxTheme.TAB);
     }
 
-    /// Draws the row on [tab] and applies what the player clicked.
     public static Result draw(GuiGraphicsExtractor graphics, Font font, FxClientState state, FxInput input, FxTab tab,
             Geometry geometry) {
         FxTab[] tabs = FxTab.values();

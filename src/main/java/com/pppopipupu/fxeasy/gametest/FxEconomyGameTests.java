@@ -324,7 +324,6 @@ public final class FxEconomyGameTests {
         return tracker.recordedAtoms(kind, currency);
     }
 
-    /// A currency of the default set these tests pinned, which is what the ids they assert on name.
     private static Currency currency(String id) {
         Currency currency = Currencies.byId(id);
         if (currency == null) {

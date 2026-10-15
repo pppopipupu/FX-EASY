@@ -74,8 +74,6 @@ public final class FxActions {
         send(new FxAccountOpenPayload(holder, age));
     }
 
-    /// The player asked for the welcome capital: the platform pays it once and answers with the account and the
-    /// notice, which is what turns the button of the card into the confirmation that the money has landed.
     public static void claimBonus() {
         send(FxClaimBonusPayload.INSTANCE);
     }
@@ -100,8 +98,6 @@ public final class FxActions {
         send(new FxLoungeClaimPayload(index));
     }
 
-    /// The walkthrough is over, either finished or skipped: the panel stops offering it right away and the
-    /// platform remembers it in the account.
     public static void markTutorialSeen() {
         FxClientState.INSTANCE.markTutorialSeen();
         send(FxTutorialSeenPayload.INSTANCE);

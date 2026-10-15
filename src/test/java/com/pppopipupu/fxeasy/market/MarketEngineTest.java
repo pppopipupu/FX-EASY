@@ -48,7 +48,6 @@ class MarketEngineTest {
         assertEquals(1.0D, market.rate(DIRT, DIRT), 0.0D);
     }
 
-    /// A level is held inside the band the definitions opened the world on, whatever the world does for years.
     @Test
     void levelsStayInsideTheDeviationClamp() {
         MarketEngine market = new MarketEngine(11L);
@@ -179,5 +178,24 @@ class MarketEngineTest {
         }
         assertEquals(600 * -1.0E-5D, appliedFundamental[goldIndex], 1.0E-12D);
         assertEquals(600 * 5.0E-6D, appliedEvent[goldIndex], 1.0E-12D);
+    }
+
+    /// The scale is the world's own tuning: it multiplies what a currency definition names before the noise and
+    /// the regime reference read it, so a world tuned twice as high walks the same seed twice as far while the
+    /// market it trades still reads as calm, which is what keeps the platform's costs off the tuning.
+    @Test
+    void theVolatilityScaleWidensTheMarketWithoutReadingAsNervous() {
+        double scale = 2.0D;
+        MarketEngine calm = new MarketEngine(23L);
+        MarketEngine wider = new MarketEngine(23L, 23L,
+                MarketEngine.derive(23L, MarketEngine.EVENT_RNG_DOMAIN),
+                MarketEngine.derive(23L, MarketEngine.EXECUTION_RNG_DOMAIN), scale);
+        for (int tick = 0; tick < 20_000; tick++) {
+            calm.advance(tick, noChange(), MarketDriverFrame.calm());
+            wider.advance(tick, noChange(), MarketDriverFrame.calm());
+        }
+        assertEquals(scale, wider.absReturn(DIRT) / calm.absReturn(DIRT), 1.0E-9D);
+        assertTrue(calm.regime(DIRT_GOLD) <= 1.2D);
+        assertTrue(wider.regime(DIRT_GOLD) <= 1.2D);
     }
 }

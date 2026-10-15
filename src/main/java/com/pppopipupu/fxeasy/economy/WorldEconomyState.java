@@ -188,9 +188,6 @@ public final class WorldEconomyState {
         return true;
     }
 
-    /// Closes the open bucket: folds its committed atoms into the flow estimates, appends the attribution of the
-    /// bucket that just ended, and plans the next bucket's revaluation rate. Returns the bucket that was closed
-    /// so the caller can report it.
     public EconomyBucket closeBucket() {
         EconomyBucket bucket = this.open.seal();
         updateFlows(bucket);
@@ -241,7 +238,6 @@ public final class WorldEconomyState {
         return this.fundamentalThisTick;
     }
 
-    /// Frozen view of everything the terminal reports about the economy.
     public EconomyRow snapshot() {
         return new EconomyRow(
                 new EconomyRow.Clock(this.marketTick, this.bucketStart, this.nextDayTick, this.rolloverDay),
@@ -270,8 +266,6 @@ public final class WorldEconomyState {
         return this.eventApplied[Currencies.index(currency)];
     }
 
-    /// Folds one closed bucket into the flow estimates, moves the inventory pressure and plans the per tick
-    /// revaluation rate of the bucket that just started.
     private void updateFlows(EconomyBucket bucket) {
         for (Currency currency : Currencies.all()) {
             int index = Currencies.index(currency);

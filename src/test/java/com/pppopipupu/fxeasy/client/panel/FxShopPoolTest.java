@@ -25,7 +25,6 @@ class FxShopPoolTest {
     private static final int SPREAD = 2;
     private static final int CONVERSION = 5;
 
-    /// A pool that names two gifts this build can hand over, one it cannot and one the world gave no weight to.
     private static final LoungeFile.Pool POOL = new LoungeFile.Pool(24_000L, 10, List.of(
             new LoungeFile.Entry(Identifier.parse("minecraft:diamond"), 1, 1, Optional.empty()),
             new LoungeFile.Entry(Identifier.parse("minecraft:apple"), 2, 3, Optional.empty()),

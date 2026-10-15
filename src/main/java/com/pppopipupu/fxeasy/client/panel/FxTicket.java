@@ -196,7 +196,6 @@ public final class FxTicket {
         return cells;
     }
 
-    /// The leverage slider of the ticket, under the margin currency cells.
     public static ScreenRectangle leverageArea(ScreenRectangle area) {
         return FxUi.rect(area.left(),
                 marginRowTop(area) + marginRows(area) * (FxTheme.ROW + FxTheme.GAP) + TEXT_ROW, area.width(),
@@ -227,13 +226,10 @@ public final class FxTicket {
         return area.height() >= FULL_HEIGHT + (packed - 1) * (FxTheme.ROW + FxTheme.GAP);
     }
 
-    /// The row the margin currency cells start at: the label of the margin currency stands under the size
-    /// slider.
     private static int marginRowTop(ScreenRectangle area) {
         return lotsArea(area).bottom() + FxTheme.GAP + TEXT_ROW;
     }
 
-    /// The button that sends the order, which is the bottom row of the column.
     public static ScreenRectangle openArea(ScreenRectangle area) {
         return FxUi.rect(area.left(), area.bottom() - FxTheme.ROW - 3, area.width(), FxTheme.ROW + 3);
     }

@@ -81,12 +81,8 @@ public final class FxClientState {
     private Currency orderMargin;
     private boolean connected;
     private boolean marginCall;
-    /// Whether the platform has blacklisted the credit of this account, which stops it from opening anything
-    /// new until the debt is repaid.
     private boolean blacklisted;
-    /// Registry index of the currency every aggregate the panel draws is quoted in, which the player cycles.
     private int basisIndex;
-    /// Registry index of the currency the platform pays its welcome capital in, and how many items of it.
     private int welcomeCurrencyIndex;
     private long welcomeItems;
     private double regime = 1.0;
@@ -104,7 +100,6 @@ public final class FxClientState {
     private boolean bonusPaid;
     /// Name the account was registered under, empty until the platform has answered the opening.
     private String holder = "";
-    /// Age the account was registered with.
     private int age;
     /// Plan the account is on, the market tick its period ends at and whether the platform renews it by itself.
     private Membership membership = Membership.NONE;
@@ -332,7 +327,6 @@ public final class FxClientState {
         return this.listingSamples;
     }
 
-    /// Samples the list column covers for that timeframe, which is all of them until the window has filled.
     public int listingWindow(Timeframe timeframe) {
         return Math.min(this.listingSamples, timeframe.ticks() / 5);
     }
@@ -351,7 +345,6 @@ public final class FxClientState {
         return this.listingSample(pair, this.listingSamples - this.listingWindow(timeframe) + index);
     }
 
-    /// Percentage change of the pair over the ticks the timeframe covers.
     public double listingChange(CurrencyPair pair, Timeframe timeframe) {
         int window = this.listingWindow(timeframe);
         if (window < 2) {
@@ -361,8 +354,6 @@ public final class FxClientState {
         return first == 0.0 ? 0.0 : (this.listingSample(pair, this.listingSamples - 1) / first - 1.0) * 100.0;
     }
 
-    /// Percentage change of one currency's own valuation over the ticks the timeframe covers, which is the
-    /// window the intel overlay reports for a currency that is not a pair.
     public double valuationChange(Currency currency, Timeframe timeframe) {
         int window = this.listingWindow(timeframe);
         if (window < 2) {
@@ -373,7 +364,6 @@ public final class FxClientState {
         return first == 0.0 ? 0.0 : (this.valuation[index][this.ringSlot(this.listingSamples - 1)] / first - 1.0) * 100.0;
     }
 
-    /// Replaces the series of one pair and timeframe with what the server answered.
     public void applyHistory(FxHistoryPayload payload) {
         this.forming = null;
         this.setCandles(Currencies.pair(payload.pairIndex()), Timeframe.byIndex(payload.timeframeIndex()), payload.candles());
@@ -426,7 +416,6 @@ public final class FxClientState {
         return this.holder;
     }
 
-    /// Age the account was registered with.
     public int age() {
         return this.age;
     }
@@ -476,19 +465,14 @@ public final class FxClientState {
         return Math.max(0L, this.membershipUntil - this.marketTick);
     }
 
-    /// Whether the platform charges the next period of the plan by itself, which is what the switch on the shop
-    /// page turns off and on again.
     public boolean autoRenew() {
         return this.autoRenew;
     }
 
-    /// Highest leverage an order of this account may name, which is what its plan buys.
     public int maxOrderLeverage() {
         return this.membership.maxLeverage();
     }
 
-    /// What the plan of this account takes off every cost the platform charges, which is what the metrics strip
-    /// and the ticket read their figures through.
     public FeeDiscount feeDiscount() {
         return this.membership.discount();
     }
@@ -498,8 +482,6 @@ public final class FxClientState {
         return Collections.unmodifiableList(this.lounge);
     }
 
-    /// Whether the plan of this account carries the lounge at all, which is what the cell that opens it is drawn
-    /// on.
     public boolean loungeOpen() {
         return this.membership.lounge();
     }
@@ -577,7 +559,6 @@ public final class FxClientState {
         return this.rate(pair.base(), pair.quote());
     }
 
-    /// Currency every aggregate the panel draws is quoted in, which the player picks.
     public Currency basis() {
         return Currencies.byIndex(Math.clamp(this.basisIndex, 0, Currencies.count() - 1));
     }
@@ -611,8 +592,6 @@ public final class FxClientState {
         return FeeModel.halfSpread(this.regime, feeDiscount());
     }
 
-    /// Total spread the platform charges around a mid rate when it converts one currency into another, which is
-    /// what the metrics strip prints and what the plan of the account has already been taken off.
     public double conversionSpread() {
         return FeeModel.conversionSpread(feeDiscount());
     }
@@ -795,8 +774,6 @@ public final class FxClientState {
         return since != 0L && this.marketTick >= since ? (this.marketTick - since) / 24000.0 : 0.0;
     }
 
-    /// Whether the platform has blacklisted the credit of this account, which stops it from opening anything
-    /// new until the debt is repaid.
     public boolean blacklisted() {
         return this.blacklisted;
     }

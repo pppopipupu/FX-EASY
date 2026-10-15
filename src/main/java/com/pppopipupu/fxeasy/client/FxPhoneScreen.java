@@ -55,7 +55,6 @@ public final class FxPhoneScreen extends Screen {
     private static final long REVEAL_MILLIS = 700L;
     private static final int SCAN_LINE = 2;
     private static final int SCAN_TRAIL = 22;
-    /// The widest price the terminal prints, which is what the price axis of the chart is measured against.
     private static final String AXIS_LABEL = "00000.0000";
 
     private final FxClientState state = FxClientState.INSTANCE;
@@ -217,6 +216,7 @@ public final class FxPhoneScreen extends Screen {
         if (this.testRelease) {
             this.testRelease = false;
             this.input.down = false;
+            this.chart.endDrag();
             this.input.endDrag();
             this.overlays.release();
         }
@@ -251,7 +251,6 @@ public final class FxPhoneScreen extends Screen {
         return Math.round(this.designHeight * progress * progress);
     }
 
-    /// The travelling line itself: a solid core with the accent fading out behind it.
     private void scanLine(GuiGraphicsExtractor graphics, int y) {
         FxUi.gradient(graphics, 0, Math.max(0, y - SCAN_TRAIL), this.designWidth, y,
                 ARGB.multiplyAlpha(FxTheme.ACCENT, 0.0F), ARGB.multiplyAlpha(FxTheme.ACCENT, 0.55F));
@@ -319,7 +318,6 @@ public final class FxPhoneScreen extends Screen {
         return this.clicks().area(target) != null;
     }
 
-    /// The target names of the frame, resolved against the layout this frame was measured with.
     private FxScriptedClicks clicks() {
         return new FxScriptedClicks(this.tab, this.state, this.layout(), this.designWidth, this.designHeight,
                 this.market, this.positions, this.account, this.overlays, this.input);
@@ -342,7 +340,6 @@ public final class FxPhoneScreen extends Screen {
         return FxControlRow.geometry(layout.controls(), this.tab.chart());
     }
 
-    /// The intel entry, which is the control row cell after the last page tab.
     private ScreenRectangle intelArea(FxTerminalLayout layout) {
         return FxControlRow.cell(this.controlGeometry(layout), FxTab.values().length);
     }
@@ -357,8 +354,6 @@ public final class FxPhoneScreen extends Screen {
         }
     }
 
-    /// Picking a pair in the market list also opens its chart, which is the page that carries the series and
-    /// the ticket for it.
     private void open(CurrencyPair pair) {
         if (!this.state.selectedPair().equals(pair)) {
             this.state.selectPair(pair);

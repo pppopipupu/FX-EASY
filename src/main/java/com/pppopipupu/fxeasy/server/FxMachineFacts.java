@@ -55,7 +55,6 @@ final class FxMachineFacts {
         this.pistonPush = toPush;
     }
 
-    /// The end of a piston move: the marks of the positions it pushed follow the block.
     void pistonMoved() {
         if (this.pistonPush == null) {
             return;
@@ -158,12 +157,6 @@ final class FxMachineFacts {
                 this.tracker.activity(kind, level.dimension());
             }
         }
-    }
-
-    void reset() {
-        this.raids.clear();
-        this.dragonDefeated = false;
-        this.weatherActive = false;
     }
 
     private static RaidPhase raidPhase(Raid raid) {

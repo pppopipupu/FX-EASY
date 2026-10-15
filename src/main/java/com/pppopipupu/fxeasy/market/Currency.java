@@ -69,7 +69,6 @@ public record Currency(String id, String code, String name, Map<String, String> 
         return this.names.getOrDefault(locale, this.name);
     }
 
-    /// Whether the platform can move this currency in and out of an inventory.
     public boolean backed() {
         return this.item.isPresent();
     }

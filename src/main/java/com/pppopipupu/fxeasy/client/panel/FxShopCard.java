@@ -46,9 +46,8 @@ public final class FxShopCard {
         event.registerPipeline(PIPELINE);
     }
 
-    /// Draws a card into [area]: the illustration of [tier] cropped the way `FxUi#cover` crops it and blended at
-    /// [opacity], and then the effect of that tier over the whole of it. [intensity] is how strongly the effect is
-    /// drawn - a card the account is on carries a stronger sheen than one it merely could buy.
+    /// [intensity] is how strongly the effect is drawn - a card the account is on carries a stronger sheen than
+    /// one it merely could buy.
     public static void draw(GuiGraphicsExtractor graphics, Identifier texture, ScreenRectangle area, int artWidth,
             int artHeight, int tier, float intensity, float opacity) {
         if (area.width() <= 0 || area.height() <= 0 || artWidth <= 0 || artHeight <= 0) {

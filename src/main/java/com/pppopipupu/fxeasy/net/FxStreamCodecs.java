@@ -8,7 +8,6 @@ import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-/// Compact binary codecs for the collection shaped payload fields.
 final class FxStreamCodecs {
 
     static final StreamCodec<FriendlyByteBuf, double[]> DOUBLE_ARRAY = StreamCodec.of(

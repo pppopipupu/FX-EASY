@@ -173,8 +173,4 @@ final class FxLootCapture {
             this.tracker.record(channel, value.currency(), value.atoms(), level.dimension());
         }
     }
-
-    void reset() {
-        this.witherDefeated = false;
-    }
 }

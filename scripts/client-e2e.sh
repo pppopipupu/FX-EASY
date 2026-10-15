@@ -151,7 +151,10 @@ HMC_OPTIONS=(
 # filed goes to the opening, and the card that hands the welcome capital over is already up behind it, which
 # is why it must not take the keys meant for the boxes. The walkthrough that follows is marked as seen by the
 # run itself (tick 30), and the welcome capital card is put away before the panel behind it is walked. The
-# ticket is walked by handing the order its margin currency - the currency the welcome capital was paid in -
+# chart is walked in both styles: the run switches the line on and clicks the plot, which is the only way a run
+# with no cursor reaches the readout of the point under the pointer, and the bounds the panel audits are what
+# keeps that readout on screen.
+# The ticket is walked by handing the order its margin currency - the currency the welcome capital was paid in -
 # and dragging the one slider that sets the size: the lots it reaches depend on the free margin, the leverage
 # and the live price, so the script asserts that the click landed and that the size moved, not a number. The
 # withdrawal is the money the run moves: it is the one of the two operations that needs no items in the
@@ -168,7 +171,7 @@ HMC_OPTIONS=(
 # tests of ShopEngine and FxCheckout.
 MCRT_REGISTER=${MCRT_REGISTER--1}
 MCRT_TYPES=${MCRT_TYPES-"25:Steve;28:30"}
-MCRT_CLICKS=${MCRT_CLICKS-"20:opening.next;22:opening.next;24:opening.name;27:opening.age;30:opening.register;40:bonus.ok;41:bonus.ok;42:bonus.close;45:tab.TRADE;50:trade.margin.diamond;55:trade.lots;60:tab.ACCOUNT;65:account.currency.diamond;75:account.withdraw;85:confirm.cancel;95:account.withdraw;105:confirm.ok;110:basis.next;170:tab.POSITIONS;185:intel;195:intel.view.EVENTS;205:intel.view.ATTRIBUTION;215:intel.close;220:tab.SHOP;222:shop.renew;224:shop.lounge;226:shop.buy.go;230:checkout.cancel;233:shop.buy.go;237:checkout.pay"}
+MCRT_CLICKS=${MCRT_CLICKS-"20:opening.next;22:opening.next;24:opening.name;27:opening.age;30:opening.register;40:bonus.ok;41:bonus.ok;42:bonus.close;45:tab.TRADE;46:chart.LINE;48:chart.plot;50:trade.margin.diamond;55:trade.lots;60:tab.ACCOUNT;65:account.currency.diamond;75:account.withdraw;85:confirm.cancel;95:account.withdraw;105:confirm.ok;110:basis.next;170:tab.POSITIONS;185:intel;195:intel.view.EVENTS;205:intel.view.ATTRIBUTION;215:intel.close;220:tab.SHOP;222:shop.renew;224:shop.lounge;226:shop.buy.go;230:checkout.cancel;233:shop.buy.go;237:checkout.pay"}
 GAME_OPTIONS=(-Djava.awt.headless=true "-Dfxeasy.e2e.openTerminal=$MCRT_TERMINAL_TICKS" "-Dfxeasy.e2e.clicks=$MCRT_CLICKS" "-Dfxeasy.e2e.types=$MCRT_TYPES" "-Dfxeasy.e2e.register=$MCRT_REGISTER")
 # The panel lays itself out from the framebuffer, and the stub defaults to 800x600: there the side column is
 # two design units too short for the full ticket and shows four of the five currency rows, while the walk below
@@ -213,6 +216,7 @@ if (( MCRT_TERMINAL_TICKS > 0 )); then
             "FX terminal bonus dismissed"
             "FX terminal test click on tab.ACCOUNT" "FX terminal notice: "
             "FX notice fxeasy.notice.bonus" "FX terminal intel opened" "FX intel layout:"
+            "FX terminal test click on chart.LINE at " "FX terminal test click on chart.plot at "
             "FX terminal test click on tab.SHOP at " "FX shop layout:"
             "FX terminal test click on shop.renew at " "FX terminal test click on shop.lounge at "
             "FX terminal test click on shop.buy.go at " "FX checkout layout:"

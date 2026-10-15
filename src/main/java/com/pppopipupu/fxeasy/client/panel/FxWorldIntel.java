@@ -47,7 +47,6 @@ public final class FxWorldIntel {
         return this.active;
     }
 
-    /// The pointer state of the overlay. The screen fills it from the mouse callbacks while the overlay is up.
     public FxInput input() {
         return this.input;
     }
@@ -167,7 +166,6 @@ public final class FxWorldIntel {
         }
     }
 
-    /// The three view cells, drawn across the top of the card. Returns the row they occupy.
     private ScreenRectangle cells(GuiGraphicsExtractor graphics, Font font, ScreenRectangle card) {
         for (View candidate : View.values()) {
             ScreenRectangle box = viewArea(candidate, card);
@@ -536,7 +534,6 @@ public final class FxWorldIntel {
     private record Line(Component text, int colour, int indent) {
     }
 
-    /// Phase of one message against the tick the feed was stamped with.
     public enum Phase {
         ANNOUNCED,
         ACTIVE,

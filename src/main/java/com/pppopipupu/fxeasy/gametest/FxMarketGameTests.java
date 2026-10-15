@@ -155,8 +155,6 @@ public final class FxMarketGameTests {
         economy.closeBucket();
     }
 
-    /// A currency of the default set the tests that name an id pin, or the running world's own currency for the
-    /// ids the default set defines.
     private static Currency currency(String id) {
         Currency currency = Currencies.byId(id);
         if (currency == null) {

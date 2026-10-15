@@ -58,7 +58,6 @@ public final class EconomyModel {
         return (double) atoms / currency.atomsPerItem();
     }
 
-    /// Pressure target of one bucket: saturating supply against a fraction of the demand that offsets it.
     public static double pressureTarget(double supply, double demand) {
         return Math.max(0.0D, Math.log1p(Math.max(0.0D, supply))
                 - EconomyConstants.DEMAND_OFFSET * Math.log1p(Math.max(0.0D, demand)));

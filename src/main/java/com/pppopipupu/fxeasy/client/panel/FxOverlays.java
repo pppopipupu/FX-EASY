@@ -90,7 +90,6 @@ public final class FxOverlays {
         return this.checkout;
     }
 
-    /// Which overlay owns the pointer and the keyboard this frame, or [Owner#PANEL] while the panel has both.
     public Owner owner(FxClientState state) {
         if (this.opening.active()) {
             return Owner.OPENING;
@@ -113,7 +112,6 @@ public final class FxOverlays {
         return this.intel.active() ? Owner.INTEL : Owner.PANEL;
     }
 
-    /// The input the pointer of this frame belongs to, which is the one of the overlay [owner] names.
     public FxInput pointer(FxClientState state, FxInput panel) {
         return switch (owner(state)) {
             case OPENING, TUTORIAL -> this.input;
@@ -126,7 +124,6 @@ public final class FxOverlays {
         };
     }
 
-    /// Whether any overlay is up, which is what stops a mouse path from reaching the panel behind it.
     public boolean active(FxClientState state) {
         return owner(state) != Owner.PANEL;
     }
@@ -142,15 +139,12 @@ public final class FxOverlays {
         }
     }
 
-    /// Forgets the focus of the shared input when the frame clicked nothing that claimed it, which is what
-    /// closes a box the player clicked away from.
     public void dropUnclaimedFocus() {
         if (this.input.pressed && !this.input.focusClaimed) {
             this.input.focus = null;
         }
     }
 
-    /// Ends the frame of every overlay input.
     public void clearInputs() {
         for (FxInput input : this.inputs()) {
             input.clear();
@@ -208,8 +202,6 @@ public final class FxOverlays {
         return forced;
     }
 
-    /// Draws the current step of the account opening and turns the click that accepts it into the request that
-    /// opens the account, which is the only thing that ends the flow.
     private void accountOpening(GuiGraphicsExtractor graphics, Font font, int designWidth, int designHeight) {
         List<FxAccountOpening.Step> openingSteps = FxAccountOpening.steps();
         FxAccountOpening.Step step = openingSteps.get(this.opening.step());

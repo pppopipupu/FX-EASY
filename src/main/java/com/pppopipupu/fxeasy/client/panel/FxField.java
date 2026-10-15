@@ -27,12 +27,10 @@ public final class FxField {
         this.digitsOnly = digitsOnly;
     }
 
-    /// A field for a whole number, which is what the registration of the account opening asks for the age in.
     public static FxField digits(int maxLength) {
         return new FxField(maxLength, true);
     }
 
-    /// A field for the name of an account holder, which is typed in printable ASCII.
     public static FxField ascii(int maxLength) {
         return new FxField(maxLength, false);
     }
@@ -41,7 +39,6 @@ public final class FxField {
         return input.focus == this;
     }
 
-    /// Takes focus when [area] was clicked, seeding the text with what the field is to start editing from.
     public void click(FxInput input, ScreenRectangle area, String seed) {
         if (input.pressed && FxUi.hit(area, input.mouseX, input.mouseY)) {
             if (!focused(input)) {
@@ -76,12 +73,10 @@ public final class FxField {
         return true;
     }
 
-    /// What was typed into the field, focused or not, which is what the owner submits.
     public String text() {
         return this.text;
     }
 
-    /// What the field shows: its own text while it holds focus, the caller's value otherwise.
     public String shown(FxInput input, String fallback) {
         return focused(input) && !this.text.isEmpty() ? this.text : fallback;
     }

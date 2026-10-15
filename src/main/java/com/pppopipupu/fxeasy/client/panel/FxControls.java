@@ -29,7 +29,6 @@ public final class FxControls {
                 area.top() + (area.height() - 8) / 2, label, enabled ? text : FxTheme.MUTED);
     }
 
-    /// A segmented choice: the selected cell carries the accent, the others stay flat.
     public static void choice(GuiGraphicsExtractor graphics, Font font, ScreenRectangle area, Component label,
             boolean selected, boolean hovered, int accent) {
         int background = selected ? accent : hovered ? FxTheme.BUTTON_HOVER : FxTheme.BUTTON;
@@ -82,13 +81,11 @@ public final class FxControls {
         }
     }
 
-    /// Thin legend chip: a colored bar followed by its label.
     public static void legend(GuiGraphicsExtractor graphics, Font font, int x, int y, int colour, Component label) {
         FxUi.fill(graphics, x, y + 3, x + 6, y + 5, colour);
         FxUi.text(graphics, font, x + 8, y, label, FxTheme.MUTED);
     }
 
-    /// A filled tag, used for the last price on the axis.
     public static void tag(GuiGraphicsExtractor graphics, Font font, ScreenRectangle area, Component label, int background) {
         FxUi.fill(graphics, area.left(), area.top(), area.right(), area.bottom(), background);
         FxUi.clipped(graphics, font, area, area.left() + 2, area.top() + (area.height() - 8) / 2, label, LABEL_DARK);

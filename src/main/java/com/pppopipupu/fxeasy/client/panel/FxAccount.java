@@ -41,7 +41,6 @@ public final class FxAccount {
     private static final int ROW_HEIGHT = 21;
     private static final int SCROLL_STEP = 3;
 
-    /// The deposit and the withdraw button of the page.
     public record Buttons(ScreenRectangle deposit, ScreenRectangle withdraw) {
     }
 
@@ -218,7 +217,6 @@ public final class FxAccount {
                 FxUi.rect(area.left() + half + FxTheme.GAP, y, area.width() - half - FxTheme.GAP, FxTheme.ROW + 2));
     }
 
-    /// Who the account is registered to, which is what the registration in the opening asks for.
     private static void holder(GuiGraphicsExtractor graphics, Font font, FxClientState state, ScreenRectangle area,
             int y) {
         boolean registered = !state.holder().isEmpty();

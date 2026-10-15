@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.pppopipupu.fxeasy.trade.Money;
 import org.junit.jupiter.api.Test;
 
-/// The wrapping the two cards that carry prose measure their lines with: it breaks at word boundaries, cuts a
-/// word that is longer than a line of its own and never loses the tail of the text.
 class FxUiTest {
 
     private static final ToIntFunction<String> WIDTH = text -> text.length() * 2;

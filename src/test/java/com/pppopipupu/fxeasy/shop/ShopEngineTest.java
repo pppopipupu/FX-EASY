@@ -93,12 +93,13 @@ class ShopEngineTest {
     @Test
     void aPurchaseTheAccountCannotAffordBuysNothing() {
         Account account = opened();
-        account.addBalance(DIRT, 8_887L * Money.UNIT);
+        long missing = Membership.GO.priceMicro() / Money.UNIT - 1L;
+        account.addBalance(DIRT, missing * Money.UNIT);
         ShopEngine.BuyResult.Rejected rejected = assertInstanceOf(ShopEngine.BuyResult.Rejected.class,
                 buy(account, Membership.GO, 0L));
         assertEquals(ShopEngine.REJECT_FUNDS, rejected.reason());
         assertEquals(Membership.NONE, account.membership());
-        assertEquals(8_887L * Money.UNIT, account.balance(DIRT), "a refused purchase charges nothing");
+        assertEquals(missing * Money.UNIT, account.balance(DIRT), "a refused purchase charges nothing");
     }
 
     /// A world only sells the plans it can be paid for: the currency a plan is priced in is data of the world,

@@ -10,13 +10,14 @@ import com.pppopipupu.fxeasy.shop.Membership;
 
 /// Everything the FX economy has to remember: the price process, the candle window of every pair and timeframe,
 /// every trading account, the monotonic market clock, the world economy, the published event layer and the
-/// three separate random generators. `marketAnchor` is the offset from world time to the market clock, which is
+/// separate random generators. `marketAnchor` is the offset from world time to the market clock, which is
 /// what keeps a candle's tick and a save's day boundary in the same frame across a reload. The shape is
 /// versioned, so a save written before the world economy existed is recognised and migrated rather than
-/// overwritten.
+/// overwritten, and a save written before the volume generator existed reads as one whose volume stream is
+/// derived from its price stream.
 public record FxSnapshot(int schemaVersion, long marketTick, long chartEpoch, long priceRng, long eventRng,
-        long executionRng, long rolloverDay, long marketAnchor, List<CurrencyRow> currencies, List<SeriesRow> series,
-        Optional<EconomyRow> economy, EventRow events, List<AccountRow> accounts) {
+        long executionRng, long volumeRng, long rolloverDay, long marketAnchor, List<CurrencyRow> currencies,
+        List<SeriesRow> series, Optional<EconomyRow> economy, EventRow events, List<AccountRow> accounts) {
 
     /// Version written by this build. A save without the field is version 1.
     public static final int SCHEMA_VERSION = 2;
@@ -30,6 +31,7 @@ public record FxSnapshot(int schemaVersion, long marketTick, long chartEpoch, lo
             Codec.LONG.fieldOf("rng").forGetter(FxSnapshot::priceRng),
             Codec.LONG.optionalFieldOf("event_rng", Long.MIN_VALUE).forGetter(FxSnapshot::eventRng),
             Codec.LONG.optionalFieldOf("execution_rng", Long.MIN_VALUE).forGetter(FxSnapshot::executionRng),
+            Codec.LONG.optionalFieldOf("volume_rng", Long.MIN_VALUE).forGetter(FxSnapshot::volumeRng),
             Codec.LONG.fieldOf("rolloverDay").forGetter(FxSnapshot::rolloverDay),
             Codec.LONG.optionalFieldOf("market_anchor", Long.MIN_VALUE).forGetter(FxSnapshot::marketAnchor),
             CurrencyRow.CODEC.listOf().fieldOf("currencies").forGetter(FxSnapshot::currencies),
@@ -38,8 +40,8 @@ public record FxSnapshot(int schemaVersion, long marketTick, long chartEpoch, lo
             EventRow.CODEC.optionalFieldOf("events", EventRow.empty()).forGetter(FxSnapshot::events),
             AccountRow.CODEC.listOf().fieldOf("accounts").forGetter(FxSnapshot::accounts)).apply(instance, FxSnapshot::new));
 
-    public static final FxSnapshot EMPTY = new FxSnapshot(SCHEMA_VERSION, 0L, 0L, 0L, Long.MIN_VALUE, Long.MIN_VALUE, -1L,
-            Long.MIN_VALUE, List.of(), List.of(), Optional.empty(), EventRow.empty(), List.of());
+    public static final FxSnapshot EMPTY = new FxSnapshot(SCHEMA_VERSION, 0L, 0L, 0L, Long.MIN_VALUE, Long.MIN_VALUE,
+            Long.MIN_VALUE, -1L, Long.MIN_VALUE, List.of(), List.of(), Optional.empty(), EventRow.empty(), List.of());
 
     public FxSnapshot {
         currencies = List.copyOf(currencies);

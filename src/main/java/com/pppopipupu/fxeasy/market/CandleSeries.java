@@ -31,18 +31,30 @@ public final class CandleSeries {
         return this.current;
     }
 
-    public void accept(long marketTick, double price) {
+    /// Advances the forming candle by one market tick: the price merges into its high, low and close, and
+    /// [volume] - the items of the base currency the world itself traded during this tick - is added to it. The
+    /// candle closes and a new one starts when the tick reaches the boundary the forming candle was opened with.
+    public void accept(long marketTick, double price, double volume) {
         if (this.current == null) {
-            this.current = Candle.of(price);
+            this.current = Candle.of(price).addVolume(volume);
             this.nextRollTick = alignUp(marketTick);
         } else {
-            double moved = Math.abs(price - this.current.close());
-            this.current = this.current.merge(price).addVolume(moved);
+            this.current = this.current.merge(price).addVolume(volume);
             if (marketTick >= this.nextRollTick) {
                 push(this.current);
                 this.current = null;
                 this.nextRollTick = alignUp(marketTick);
             }
+        }
+    }
+
+    /// Books a trade that executed on this pair into the candle being formed, in items of the base currency of
+    /// the pair. The world's own trading and what the players trade are the same quantity to a chart, which is
+    /// what a volume bar shows, so both land in the same candle. A trade that arrives before the first market
+    /// tick has no candle to land in and is dropped with it.
+    public void addVolume(double items) {
+        if (this.current != null && items > 0.0D) {
+            this.current = this.current.addVolume(items);
         }
     }
 

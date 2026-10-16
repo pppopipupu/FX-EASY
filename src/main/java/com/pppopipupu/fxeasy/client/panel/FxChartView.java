@@ -108,7 +108,12 @@ public final class FxChartView {
         return sum / period;
     }
 
+    /// What traded during a candle, in items of the base currency of the pair: a size, so it is written as one,
+    /// and a candle whose volume is a fraction of an item still reads as what it is rather than as nothing.
     public static String turnover(double value) {
+        if (value <= 0.0D) {
+            return "0";
+        }
         if (value >= 1.0E9D) {
             return String.format(Locale.ROOT, "%.1fB", value / 1.0E9D);
         }
@@ -118,7 +123,13 @@ public final class FxChartView {
         if (value >= 1.0E3D) {
             return String.format(Locale.ROOT, "%.1fk", value / 1.0E3D);
         }
-        return String.format(Locale.ROOT, "%.0f", value);
+        if (value >= 100.0D) {
+            return String.format(Locale.ROOT, "%.0f", value);
+        }
+        if (value >= 1.0D) {
+            return String.format(Locale.ROOT, "%.1f", value);
+        }
+        return String.format(Locale.ROOT, "%.3f", value);
     }
 
     /// Index of the candle whose `[startTick, endTick)` interval contains [announcedTick], or -1 when no candle
@@ -240,7 +251,8 @@ public final class FxChartView {
                 }
                 int x = barX(plot.left(), (index - start) * slot);
                 int width = Math.max(1, (int) (slot * 0.66D));
-                int barTop = volumeBottom - (int) Math.round((volumeBottom - priceBottom - 1) * (candle.volume() / volumeMax));
+                int reach = volumeBottom - priceBottom - 1;
+                int barTop = volumeBottom - Math.max(1, (int) Math.round(reach * (candle.volume() / volumeMax)));
                 FxUi.fill(graphics, x, Math.min(barTop, volumeBottom), x + width, volumeBottom,
                         ARGB.multiplyAlpha(candle.isRising() ? FxTheme.UP : FxTheme.DOWN, 0.55F));
             }
@@ -326,10 +338,12 @@ public final class FxChartView {
         stroke(graphics, values, count, plot, low, range, priceTop, priceBottom, slot, colour, false);
     }
 
-    /// The series sample under one pixel column of the stroke: a column between two samples moves by the slope of
-    /// that segment, a column past the last sample is a time the chart holds no price for and draws nothing
-    /// instead of repeating the last one as a flat line into the future, and a window of a single sample carries
-    /// its value on its own column alone.
+    /// The series sample under one pixel column of the stroke. A column between two samples reads a curve
+    /// through the samples rather than the straight line between them: the curve passes through every close and
+    /// never overshoots one, but it leaves each sample with a single slope instead of a corner, which is what
+    /// keeps a line that changes direction every candle from reading as a saw. A column past the last sample is a
+    /// time the chart holds no price for and draws nothing instead of repeating the last one as a flat line into
+    /// the future, and a window of a single sample carries its value on its own column alone.
     static double columnValue(double[] values, int count, double slot, int column) {
         double position = column / slot;
         if (count < 1 || position > count - 1.0D) {
@@ -339,7 +353,44 @@ public final class FxChartView {
             return values[0];
         }
         int index = Math.min((int) position, count - 2);
-        return values[index] + (values[index + 1] - values[index]) * (position - index);
+        double left = values[index];
+        double right = values[index + 1];
+        if (Double.isNaN(left) || Double.isNaN(right)) {
+            return Double.NaN;
+        }
+        double t = position - index;
+        double start = tangent(values, count, index);
+        double end = tangent(values, count, index + 1);
+        double squared = t * t;
+        return (2.0D * squared * t - 3.0D * squared + 1.0D) * left
+                + (squared * t - 2.0D * squared + t) * start
+                + (-2.0D * squared * t + 3.0D * squared) * right
+                + (squared * t - squared) * end;
+    }
+
+    /// Slope the curve leaves one sample with: zero where the sample is a high or a low of the window, and
+    /// otherwise the harmonic mean of the slopes of the two segments that meet there, which is the shape
+    /// preserving choice - the curve takes the slope of the flatter side, so a segment can never swing past a
+    /// close it runs between. A sample at the edge of the window, and one whose neighbour is missing because an
+    /// average is not filled yet, takes the slope of the one segment it has.
+    private static double tangent(double[] values, int count, int index) {
+        double before = index > 0 ? values[index] - values[index - 1] : Double.NaN;
+        double after = index + 1 < count ? values[index + 1] - values[index] : Double.NaN;
+        boolean hasBefore = !Double.isNaN(before);
+        boolean hasAfter = !Double.isNaN(after);
+        if (!hasBefore && !hasAfter) {
+            return 0.0D;
+        }
+        if (!hasBefore) {
+            return after;
+        }
+        if (!hasAfter) {
+            return before;
+        }
+        if (before * after <= 0.0D) {
+            return 0.0D;
+        }
+        return 2.0D * before * after / (before + after);
     }
 
     /// The column the newest sample of the window stands on. The stroke stops there, and so does the marker that
@@ -362,24 +413,51 @@ public final class FxChartView {
         if (count < 2) {
             return;
         }
-        int previousY = Integer.MIN_VALUE;
+        double previousY = Double.NaN;
         for (int column = 0; column < plot.width(); column++) {
             double value = columnValue(values, count, slot, column);
             if (Double.isNaN(value)) {
-                previousY = Integer.MIN_VALUE;
+                previousY = Double.NaN;
                 continue;
             }
             int x = plot.left() + column;
-            int y = priceY(value, low, range, priceTop, priceBottom);
+            double y = priceY(value, low, range, priceTop, priceBottom);
             if (area) {
-                FxUi.gradient(graphics, x, y, x + 1, priceBottom + 1, ARGB.multiplyAlpha(colour, 0.3F),
-                        ARGB.multiplyAlpha(colour, 0.0F));
+                FxUi.gradient(graphics, x, (int) Math.round(y), x + 1, priceBottom + 1,
+                        ARGB.multiplyAlpha(colour, 0.3F), ARGB.multiplyAlpha(colour, 0.0F));
             }
-            int top = previousY == Integer.MIN_VALUE ? y : Math.min(previousY, y);
-            int bottom = previousY == Integer.MIN_VALUE ? y : Math.max(previousY, y);
-            FxUi.fill(graphics, x, top, x + 1, bottom + 1, colour);
+            span(graphics, x, Double.isNaN(previousY) ? y : previousY, y, colour);
             previousY = y;
         }
+    }
+
+    /// Fills the span one column of the stroke covers: the rows it runs through, with the two rows it covers
+    /// only in part drawn at the fraction they are covered by. A line that moves less than a pixel per column
+    /// would otherwise snap between two rows and read as a staircase rather than as a line. The rows between the
+    /// two ends are one rectangle, so a steep column costs the same three draws a flat one does.
+    private static void span(GuiGraphicsExtractor graphics, int x, double from, double to, int colour) {
+        double top = Math.min(from, to);
+        double bottom = Math.max(from, to) + 1.0D;
+        int first = (int) Math.floor(top);
+        int last = (int) Math.floor(bottom - 1.0E-9D);
+        if (last < first) {
+            return;
+        }
+        if (first == last) {
+            FxUi.fill(graphics, x, first, x + 1, first + 1, covered(colour, bottom - top));
+            return;
+        }
+        FxUi.fill(graphics, x, first, x + 1, first + 1, covered(colour, first + 1.0D - top));
+        if (last - first > 1) {
+            FxUi.fill(graphics, x, first + 1, x + 1, last, colour);
+        }
+        FxUi.fill(graphics, x, last, x + 1, last + 1, covered(colour, bottom - last));
+    }
+
+    /// The colour of a stroke at the fraction of a pixel it covers there, which is what softens its two ends.
+    private static int covered(int colour, double fraction) {
+        int alpha = (int) Math.round(Math.clamp(fraction, 0.0D, 1.0D) * 255.0D);
+        return ARGB.multiplyAlpha(colour, alpha / 255.0F);
     }
 
     private void legend(GuiGraphicsExtractor graphics, Font font, List<Candle> candles, ScreenRectangle plot) {
@@ -459,7 +537,8 @@ public final class FxChartView {
         rows.add(new Row(FxText.get("fxeasy.panel.chart.close"),
                 FxText.literal(FxUi.price(candle.close()) + "  " + FxUi.percent(change))));
         rows.add(new Row(FxText.get("fxeasy.panel.chart.amplitude"), FxText.literal(FxUi.percent(amplitude))));
-        rows.add(new Row(FxText.get("fxeasy.panel.chart.volume"), FxText.literal(turnover(candle.volume()))));
+        rows.add(new Row(FxText.get("fxeasy.panel.chart.volume"),
+                FxText.literal(turnover(candle.volume()) + " " + state.selectedPair().base().code())));
         addAverage(rows, candles, MA_FAST, index);
         addAverage(rows, candles, MA_SLOW, index);
         List<Component> messages = this.markers.get(index);
@@ -540,6 +619,12 @@ public final class FxChartView {
     }
 
     private static int priceY(double price, double low, double range, int top, int bottom) {
-        return range <= 0.0D ? (top + bottom) / 2 : (int) Math.round(bottom - (price - low) / range * (bottom - top));
+        return (int) Math.round(pricePosition(price, low, range, top, bottom));
+    }
+
+    /// Row of a price as the stroke reads it, before it is rounded to a row of the plot: the curve is drawn
+    /// between the rows, so a line that moves a fraction of a pixel still reads as a line.
+    private static double pricePosition(double price, double low, double range, int top, int bottom) {
+        return range <= 0.0D ? (top + bottom) / 2.0D : bottom - (price - low) / range * (bottom - top);
     }
 }

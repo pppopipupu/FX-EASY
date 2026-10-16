@@ -84,18 +84,15 @@ final class FxPlayerFeed {
 
     void sendAccount(ServerPlayer player, Account account) {
         MarketEngine market = this.state.market();
-        FxConfig.Snapshot config = FxConfig.get();
         long[] balances = new long[Currencies.count()];
         long[] realized = new long[Currencies.count()];
         long[] freeMargin = new long[Currencies.count()];
-        double[] riskRoom = new double[Currencies.count()];
         long[] debtSince = new long[Currencies.count()];
         for (Currency currency : Currencies.all()) {
             int index = Currencies.index(currency);
             balances[index] = account.balance(currency);
             realized[index] = account.realized(currency);
             freeMargin[index] = account.freeMargin(currency);
-            riskRoom[index] = account.riskRoom(currency, market, config.accountRiskLimit(currency));
             debtSince[index] = account.debtSince(currency);
         }
         List<FxPositionPayload> positions = new ArrayList<>(account.positionCount());
@@ -124,7 +121,6 @@ final class FxPlayerFeed {
                 balances,
                 realized,
                 freeMargin,
-                riskRoom,
                 positions,
                 marginCall,
                 account.closedTrades(),

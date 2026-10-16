@@ -5,8 +5,9 @@ import module java.base;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-/// OHLC sample of one candle period. Values are pair mid prices. [#volume] is the turnover the market process
-/// moved during the candle, which is what a synthetic market can report as volume.
+/// OHLC sample of one candle period. Values are pair mid prices. [#volume] is what traded during the candle, in
+/// items of the base currency of the pair: the trading the world did on its own plus the notional of every order
+/// a player executed, which is what a chart draws as a volume bar and what the readout names.
 public record Candle(double open, double high, double low, double close, double volume) {
 
     public static final Codec<Candle> CODEC = RecordCodecBuilder.create(instance -> instance.group(

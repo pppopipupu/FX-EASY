@@ -36,7 +36,7 @@ public final class FxHeader {
                 new Item(FxText.literal(FxUi.price(state.price(pair))), changeColour),
                 new Item(FxText.literal(FxUi.percent(change)), changeColour));
         if (area.width() >= WIDE) {
-            items(graphics, font, x, y, 3, new Item(FxText.get("fxeasy.panel.bid"), FxTheme.MUTED),
+            x = items(graphics, font, x, y, 3, new Item(FxText.get("fxeasy.panel.bid"), FxTheme.MUTED),
                     new Item(FxText.literal(FxUi.price(state.bid(pair))), FxTheme.TEXT),
                     new Item(FxText.get("fxeasy.panel.ask"), FxTheme.MUTED),
                     new Item(FxText.literal(FxUi.price(state.ask(pair))), FxTheme.TEXT));

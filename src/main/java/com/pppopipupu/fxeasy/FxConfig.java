@@ -35,21 +35,6 @@ public final class FxConfig {
             .comment("Most events that may move a price at the same time.")
             .defineInRange("events.max_priced", 3, 0, 8);
 
-    private static final ModConfigSpec.BooleanValue ACCOUNT_QUOTA_ENABLED = BUILDER
-            .comment("Whether one account is limited in how much risk it may add on one currency.")
-            .define("quota.account_enabled", true);
-    private static final ModConfigSpec.BooleanValue SERVER_QUOTA_ENABLED = BUILDER
-            .comment("Whether every account together is limited on one currency. A single player world may turn",
-                    "this off: the global cap can otherwise block the only trader in the world.")
-            .define("quota.server_enabled", true);
-    private static final ModConfigSpec.DoubleValue ACCOUNT_QUOTA_DAYS = BUILDER
-            .comment("An account may hold this many economic days of one currency as absolute risk, measured at",
-                    "the reference value of that currency, not at whatever it is worth after a crash.")
-            .defineInRange("quota.account_days", 0.5D, 0.05D, 8.0D);
-    private static final ModConfigSpec.DoubleValue SERVER_QUOTA_DAYS = BUILDER
-            .comment("Every account together may hold this many economic days of one currency as absolute risk.")
-            .defineInRange("quota.server_days", 4.0D, 0.5D, 64.0D);
-
     private static final ModConfigSpec.BooleanValue COLLECT_ENABLED = BUILDER
             .comment("Master switch for the committed fact collector. Off means the market prices nothing the world",
                     "does, which is the same as an economy with no production at all.")
@@ -112,10 +97,6 @@ public final class FxConfig {
                 EVENT_CANDIDATE_INTERVAL.get(),
                 EVENT_BASE_CHANCE.get(),
                 MAX_PRICED_EVENTS.get(),
-                ACCOUNT_QUOTA_ENABLED.get(),
-                SERVER_QUOTA_ENABLED.get(),
-                ACCOUNT_QUOTA_DAYS.get(),
-                SERVER_QUOTA_DAYS.get(),
                 COLLECT_ENABLED.get(),
                 ORE_MARKERS_ENABLED.get(),
                 ORE_MARKER_BUDGET.get(),
@@ -170,8 +151,7 @@ public final class FxConfig {
 
     /// Cached values, one instance per config state. The arrays are never handed out for mutation.
     public record Snapshot(boolean flavorEventsEnabled, int eventCandidateInterval,
-            double eventBaseChance, int maxPricedEvents, boolean accountQuotaEnabled,
-            boolean serverQuotaEnabled, double accountQuotaDays, double serverQuotaDays, boolean collectEnabled,
+            double eventBaseChance, int maxPricedEvents, boolean collectEnabled,
             boolean oreMarkersEnabled, int oreMarkerBudget, int tradeRegionLimit, String welcomeCurrencyId,
             long welcomeItems, double volatilityScale, boolean[] enabledSources) {
 
@@ -186,7 +166,7 @@ public final class FxConfig {
             boolean[] mask = new boolean[EconomySourceKind.COUNT];
             Arrays.fill(mask, true);
             return new Snapshot(true, EconomyConstants.TICKS_PER_DAY, 0.35D, 3, true,
-                    true, 0.5D, 4.0D, true, true, 512, 1024, "diamond", 10L,
+                    true, 512, 1024, "diamond", 10L,
                     MarketEngine.DEFAULT_VOLATILITY_SCALE, mask);
         }
 
@@ -207,17 +187,6 @@ public final class FxConfig {
                 }
             }
             return Currencies.byIndex(0);
-        }
-
-        /// Absolute risk one account may add on one currency, in items of that same currency: risk is a size in
-        /// the currency it is carried in, so no price ever enters this limit.
-        public double accountRiskLimit(Currency currency) {
-            return this.accountQuotaEnabled ? this.accountQuotaDays * currency.capacity() : Double.POSITIVE_INFINITY;
-        }
-
-        /// Absolute risk every account together may add on one currency, in items of that same currency.
-        public double serverRiskLimit(Currency currency) {
-            return this.serverQuotaEnabled ? this.serverQuotaDays * currency.capacity() : Double.POSITIVE_INFINITY;
         }
     }
 }

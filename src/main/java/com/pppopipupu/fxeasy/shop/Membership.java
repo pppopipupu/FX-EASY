@@ -15,7 +15,7 @@ import com.pppopipupu.fxeasy.trade.Money;
 public enum Membership {
 
     NONE("none", "", 0L, 100, FeeDiscount.NONE, false),
-    GO("go", "dirt", 8_888L, 200, FeeDiscount.NONE, false),
+    GO("go", "dirt", 888L, 200, FeeDiscount.NONE, false),
     PLUS("plus", "diamond", 64L, 300, new FeeDiscount(0.33D, 0.33D, 0.33D, 0.0D), false),
     PRO("pro", "diamond", 666L, 500, new FeeDiscount(0.66D, 0.66D, 0.66D, 0.66D), true);
 

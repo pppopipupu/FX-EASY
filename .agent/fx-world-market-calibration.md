@@ -195,3 +195,13 @@ pair 本身 +31.304%,而仓位结算在土块:黄金自身 -24.219% 意味着利
 - regime 与交易成本的关系没有变:参考值与噪声同比例放大,S1 里整轮 regime 读数为 1.0000(见上),所以点差、掉期与保证金折扣的档位与调参前一致。
 
 需要重跑的情况:改动 `economy/EconomyConstants`、`market/FeeModel`、事件目录,新增/调整币种定义的价格、波动、利率与容量,或者改动 `MarketEngine` 的噪声/波动常量(`RESIDUAL_NOISE_SHARE`、`DEFAULT_VOLATILITY_SCALE`)。
+
+## 7. 做空开仓加点差之后
+
+2026-10-16:开仓点差按方向分档,做空比做多贵一点。
+
+- 新增 `FeeModel.SHORT_OPEN_SPREAD_MULTIPLE = 1.5` 与 `FeeModel.openHalfSpread(Side, regime, discount)`:开仓单走 `FeeModel.openFill`,卖出方向(做空)付 1.5 倍半点差;平仓单仍走 `FeeModel.fill` 的对称半点差。一次做空的点差成本因此比一次做多高 0.5 倍半点差,且只在开仓那一步收,不平仓时再收一次。`TradeEngine.open` 换成 `openFill`,`Position.closingPrice`(权益标记)、`bid`/`ask`(行情报价)与 `TradeEngine.close` 都不动,面板的费用条改读 `FxClientState.openSpreadHalf(orderSide)`。
+- 折扣、regime、滑点与掉期都没动:`openHalfSpread` 是 `halfSpread` 乘一个方向倍数,计划折扣照旧作用在点差上;`openFill` 与 `fill` 抽随机数的次数与顺序完全相同(同样的 `nextChance`),所以同一颗种子下非做空场景的抽取序列逐值不变。
+- 受影响的场景只有 S9(先做空再扩产):开仓价下移,实现利润相应减少。S9 记录的开仓价与当时中间价之差是 9.72e-5,按 1.5 倍计,多付的是这一次开仓点差的一半;S9 自己记录的总成本约 1.9 土块,所以增量至多 0.5 土块,相对 +1523.93 土块在 0.03% 以内,结论(方向、量级、"成本只吃掉毛利约 0.1%")不变。上面这段是按公式算出的上界,不是实测值。
+- S1 ～ S8、S10 ～ S12 不受影响,理由:它们的开仓方向都是买入(`openFill` 与 `fill` 在买入方向逐值相同),平仓与强平走的是对称的 `fill`,抽取序列也没有变。
+- S9 ～ S12 没有重跑:它们的驱动 `CalibrationRun` 是临时程序,跑完即删,仓库里没有;要重跑就得重写一个只覆盖 S9 的驱动(同一颗种子 20261012、同样的开仓与扩产顺序),本记录没有做。

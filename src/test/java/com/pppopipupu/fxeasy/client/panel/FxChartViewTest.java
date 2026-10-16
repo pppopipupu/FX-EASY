@@ -10,22 +10,50 @@ import org.junit.jupiter.api.Test;
 import com.pppopipupu.fxeasy.market.Candle;
 import com.pppopipupu.fxeasy.market.TimedCandle;
 
-/// The line style strokes one column per design unit, interpolating between the samples it falls between. A
-/// stroke that stepped sample by sample is what made the line chart look like candles again, so the columns
-/// have to move by the slope of the segment and stay inside the series: past the newest sample there is no
-/// price yet, so the stroke stops there instead of running flat into the future, and the circle that marks the
-/// point being read stops with it. The event markers hang off the same window: a tick belongs to the candle
-/// whose half open interval contains it, and a tick from before the chart epoch belongs to no candle at all.
+/// The line style strokes one column per design unit, reading a smooth curve through the samples it falls
+/// between. A stroke that stepped sample by sample is what made the line chart look like candles again, and one
+/// that ran straight from close to close left a corner on every candle, so the columns have to move by the slope
+/// of the curve and stay inside the series: past the newest sample there is no price yet, so the stroke stops
+/// there instead of running flat into the future, and the circle that marks the point being read stops with it.
+/// The event markers hang off the same window: a tick belongs to the candle whose half open interval contains
+/// it, and a tick from before the chart epoch belongs to no candle at all.
 class FxChartViewTest {
 
     @Test
-    void columnsInterpolateBetweenSamples() {
+    void columnsPassThroughEverySample() {
         double[] values = { 0.0D, 100.0D, 100.0D, 300.0D };
         assertEquals(0.0D, FxChartView.columnValue(values, 4, 10.0D, 0));
-        assertEquals(50.0D, FxChartView.columnValue(values, 4, 10.0D, 5));
-        assertEquals(90.0D, FxChartView.columnValue(values, 4, 10.0D, 9));
         assertEquals(100.0D, FxChartView.columnValue(values, 4, 10.0D, 10));
-        assertEquals(200.0D, FxChartView.columnValue(values, 4, 10.0D, 25));
+        assertEquals(100.0D, FxChartView.columnValue(values, 4, 10.0D, 20));
+        assertEquals(300.0D, FxChartView.columnValue(values, 4, 10.0D, 30));
+    }
+
+    /// The curve runs between two closes without ever swinging past one of them: a column of a segment stays
+    /// inside the closes it joins, which is what a shape preserving curve is for, and a segment of two equal
+    /// closes is flat rather than bulging between them.
+    @Test
+    void columnsStayBetweenTheSamplesTheyJoin() {
+        double[] values = { 0.0D, 1000.0D, 0.0D, 500.0D };
+        for (int segment = 0; segment < 3; segment++) {
+            double from = values[segment];
+            double to = values[segment + 1];
+            for (int column = segment * 10; column <= (segment + 1) * 10; column++) {
+                double value = FxChartView.columnValue(values, 4, 10.0D, column);
+                assertTrue(value >= Math.min(from, to) - 1.0E-9D && value <= Math.max(from, to) + 1.0E-9D,
+                        "column " + column + " reads " + value + " between " + from + " and " + to);
+            }
+        }
+    }
+
+    /// The curve leaves a sample with one slope rather than a corner, so a line that turns every candle reads as
+    /// a line: the two columns around a sample move by the same amount, which is what a stroke that ran straight
+    /// from close to close could not do.
+    @Test
+    void theCurveHasNoCornerAtASample() {
+        double[] values = { 0.0D, 1000.0D, 1500.0D };
+        double into = FxChartView.columnValue(values, 3, 40.0D, 40) - FxChartView.columnValue(values, 3, 40.0D, 39);
+        double out = FxChartView.columnValue(values, 3, 40.0D, 41) - FxChartView.columnValue(values, 3, 40.0D, 40);
+        assertEquals(into, out, 2.0D, "the curve turns at the sample rather than breaking there");
     }
 
     @Test
@@ -64,14 +92,15 @@ class FxChartViewTest {
         assertEquals(0, FxChartView.markerColumnAt(-40, 2, 3, 7.5D), "the pointer left of the plot stops on it");
     }
 
+    /// A series that only ever rises draws a curve that only ever rises: the stroke never steps back on itself
+    /// between two closes, so a column of the window reads at least what the column before it read.
     @Test
-    void neighbouringColumnsMoveByTheSlopeOfTheSegment() {
-        double[] values = { 0.0D, 1000.0D, 0.0D };
-        double slope = 1000.0D / 40.0D;
-        double previous = FxChartView.columnValue(values, 3, 40.0D, 0);
-        for (int column = 1; column < 80; column++) {
-            double value = FxChartView.columnValue(values, 3, 40.0D, column);
-            assertEquals(slope, Math.abs(value - previous), 1.0E-9D);
+    void aRisingSeriesDrawsARisingCurve() {
+        double[] values = { 0.0D, 100.0D, 300.0D, 700.0D };
+        double previous = FxChartView.columnValue(values, 4, 40.0D, 0);
+        for (int column = 1; column <= 120; column++) {
+            double value = FxChartView.columnValue(values, 4, 40.0D, column);
+            assertTrue(value >= previous - 1.0E-9D, "column " + column + " reads " + value + " after " + previous);
             previous = value;
         }
     }

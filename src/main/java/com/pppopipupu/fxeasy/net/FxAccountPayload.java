@@ -13,11 +13,9 @@ import net.minecraft.world.item.ItemStack;
 /// Full account snapshot: per currency balances, realised profit and free margin, the open positions and the
 /// margin state the platform acts on. Amounts are micro units of one item of the currency, indexed in the order
 /// the currency table of this session names; nothing here is summed, because a sum over currencies is the
-/// client's to take in whichever currency the player reads the panel in. `riskRoom` is what the exposure quota of
-/// the account still leaves it in items of that currency, which is what the size the ticket builds is bounded by
-/// as well, and `inf` while the platform limits no account. `debtSince` carries the market tick each currency's
-/// debt started at, zero while that balance is not in the red, and `blacklisted` is the platform's own verdict on
-/// the credit record, so the panel never has to derive it.
+/// client's to take in whichever currency the player reads the panel in. `debtSince` carries the market tick each
+/// currency's debt started at, zero while that balance is not in the red, and `blacklisted` is the platform's own
+/// verdict on the credit record, so the panel never has to derive it.
 ///
 /// The subscription travels by name, with the market tick its period ends at, whether the platform renews it by
 /// itself, and what the lounge of the account is holding: the gifts are sent as stacks in the order the lounge
@@ -26,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
 ///
 /// The codec is written out rather than composed, because the record carries more fields than the composite
 /// overloads take.
-public record FxAccountPayload(long[] balances, long[] realized, long[] freeMargin, double[] riskRoom, List<FxPositionPayload> positions, boolean marginCall, long closedTrades, boolean opened, boolean tutorialSeen, boolean bonusPaid, String holder, int age, long[] debtSince, boolean blacklisted, int welcomeCurrency, long welcomeItems, String membership, long membershipUntil, boolean autoRenew, long loungeNext, List<ItemStack> lounge) implements CustomPacketPayload {
+public record FxAccountPayload(long[] balances, long[] realized, long[] freeMargin, List<FxPositionPayload> positions, boolean marginCall, long closedTrades, boolean opened, boolean tutorialSeen, boolean bonusPaid, String holder, int age, long[] debtSince, boolean blacklisted, int welcomeCurrency, long welcomeItems, String membership, long membershipUntil, boolean autoRenew, long loungeNext, List<ItemStack> lounge) implements CustomPacketPayload {
 
     public static final Type<FxAccountPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(FxEasy.MODID, "account"));
 
@@ -56,7 +54,6 @@ public record FxAccountPayload(long[] balances, long[] realized, long[] freeMarg
         FxStreamCodecs.LONG_ARRAY.encode(buffer, payload.balances());
         FxStreamCodecs.LONG_ARRAY.encode(buffer, payload.realized());
         FxStreamCodecs.LONG_ARRAY.encode(buffer, payload.freeMargin());
-        FxStreamCodecs.DOUBLE_ARRAY.encode(buffer, payload.riskRoom());
         POSITIONS.encode(buffer, payload.positions());
         buffer.writeBoolean(payload.marginCall());
         buffer.writeVarLong(payload.closedTrades());
@@ -80,7 +77,6 @@ public record FxAccountPayload(long[] balances, long[] realized, long[] freeMarg
         long[] balances = FxStreamCodecs.LONG_ARRAY.decode(buffer);
         long[] realized = FxStreamCodecs.LONG_ARRAY.decode(buffer);
         long[] freeMargin = FxStreamCodecs.LONG_ARRAY.decode(buffer);
-        double[] riskRoom = FxStreamCodecs.DOUBLE_ARRAY.decode(buffer);
         List<FxPositionPayload> positions = POSITIONS.decode(buffer);
         boolean marginCall = buffer.readBoolean();
         long closedTrades = buffer.readVarLong();
@@ -98,7 +94,7 @@ public record FxAccountPayload(long[] balances, long[] realized, long[] freeMarg
         boolean autoRenew = buffer.readBoolean();
         long loungeNext = buffer.readVarLong();
         List<ItemStack> lounge = LOUNGE.decode(buffer);
-        return new FxAccountPayload(balances, realized, freeMargin, riskRoom, positions, marginCall,
+        return new FxAccountPayload(balances, realized, freeMargin, positions, marginCall,
                 closedTrades, opened, tutorialSeen, bonusPaid, holder, age, debtSince, blacklisted, welcomeCurrency,
                 welcomeItems, membership, membershipUntil, autoRenew, loungeNext, lounge);
     }

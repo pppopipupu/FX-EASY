@@ -307,7 +307,6 @@
   "fxeasy.reject.margin": "Not enough free margin",
   "fxeasy.reject.position": "Position not found",
   "fxeasy.reject.positions": "Too many open positions",
-  "fxeasy.reject.quota": "Exposure limit reached: this order would exceed the risk quota of the currency",
   "fxeasy.reject.shop.currency": "This world does not trade the currency this plan is priced in",
   "fxeasy.reject.shop.downgrade": "This plan is below the one the account is on",
   "fxeasy.reject.shop.funds": "Not enough balance to pay for this plan",

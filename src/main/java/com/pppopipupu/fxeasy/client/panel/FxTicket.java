@@ -19,11 +19,10 @@ import net.minecraft.util.ARGB;
 
 /// Order ticket: side, lots, leverage, the currency the order locks its margin in, the margin the order would
 /// need and the button that sends it. One slider sets the size, in whole lots, one item of the base currency of
-/// the pair being one lot, from nothing up to what the free margin of the margin currency backs at the
-/// leverage of the order and the risk room the account reported on either currency of the pair allows, whichever
-/// is smaller, so the ticket never builds a size the platform would refuse for want of margin or for want of the
-/// account's own quota. What the quota of the whole server still leaves is the server's alone, so a size that
-/// runs into it is refused and reported rather than never offered.
+/// the pair being one lot, from nothing up to what the free margin of the margin currency backs at the leverage
+/// of the order, so the ticket never builds a size the platform would refuse for want of margin. The lots readout
+/// shows the size against that ceiling the way the leverage readout shows the multiple against the ceiling of the
+/// plan.
 ///
 /// The column is drawn top down from the controls of the order and bottom up from the button, because its height
 /// follows the window and the panel lays the side column out in design units. A column that cannot hold the
@@ -86,7 +85,8 @@ public final class FxTicket {
         int maximum = state.maxOrderUnits();
         state.setOrderUnits(Math.min(state.orderUnits(), maximum));
         FxUi.text(graphics, font, x, y, FxText.get("fxeasy.panel.lots"), FxTheme.MUTED);
-        FxUi.right(graphics, font, area.right(), y, FxText.literal(FxUi.lots(state.orderUnits())), FxTheme.TEXT);
+        FxUi.right(graphics, font, area.right(), y,
+                FxText.literal(FxUi.lots(state.orderUnits()) + " / " + FxUi.lots(maximum)), FxTheme.TEXT);
         ScreenRectangle lots = lotsArea(area);
         FxControls.slider(graphics, font, lots, lotsFraction(state.orderUnits(), maximum), input.hovered(lots),
                 input.dragging(DRAG_LOTS));
@@ -171,7 +171,7 @@ public final class FxTicket {
 
     /// The size slider of the ticket, under the label of the lots, which the draw and a scripted click both
     /// read: its left end is an order of nothing and its right end everything the free margin of the ticket backs
-    /// at its leverage or the risk room of the account leaves, whichever is smaller.
+    /// at its leverage.
     public static ScreenRectangle lotsArea(ScreenRectangle area) {
         return FxUi.rect(area.left(), area.top() + FxTheme.ROW + 3 + FxTheme.GAP + TEXT_ROW, area.width(),
                 SLIDER_HEIGHT);

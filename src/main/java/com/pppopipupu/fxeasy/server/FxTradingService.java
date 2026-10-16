@@ -49,11 +49,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /// Server side owner of the FX economy: advances the market every tick on its own monotonic clock, prices what
-/// the world actually produced, runs the published event layer, charges swap at rollover, enforces margin and
-/// exposure rules and answers every terminal request. All money movements are validated here.
+/// the world actually produced, runs the published event layer, charges swap at rollover, enforces margin rules
+/// and answers every terminal request. All money movements are validated here.
 public final class FxTradingService {
-
-    public static final String REJECT_QUOTA = "fxeasy.reject.quota";
 
     private static final int SYNC_INTERVAL = 5;
     private static final int SNAPSHOT_INTERVAL = 600;
@@ -518,44 +516,11 @@ public final class FxTradingService {
         Side side = Side.values()[payload.sideOrdinal()];
         Currency marginCurrency = Currencies.byIndex(payload.marginCurrencyOrdinal());
         MarketEngine market = this.state.market();
-        String quota = quotaRejection(account, pair, payload.units(), market);
-        if (quota != null) {
-            notice(player, quota, "", true);
-            this.feed.sendAccount(player, account);
-            return;
-        }
         switch (TradeEngine.open(account, pair, side, marginCurrency, payload.units(), payload.leverage(), market)) {
             case TradeEngine.OpenResult.Opened opened -> notice(player, "fxeasy.notice.open", describe(opened.position()), false);
             case TradeEngine.OpenResult.Rejected rejected -> notice(player, rejected.reason(), "", true);
         }
         this.feed.sendAccount(player, account);
-    }
-
-    /// Whether the order would push the account or the whole server past the risk limit of either currency of
-    /// the pair. Risk is counted in items of the currency that carries it, so the limit never has to be converted
-    /// and a falling market never unlocks more room, and an order that reduces risk is never refused because
-    /// only new risk is measured.
-    private String quotaRejection(Account account, CurrencyPair pair, int units, MarketEngine market) {
-        double pairPrice = market.price(pair);
-        FxConfig.Snapshot config = FxConfig.get();
-        for (Currency currency : List.of(pair.base(), pair.quote())) {
-            double added = TradeEngine.addedExposureItems(units, pair, currency, pairPrice);
-            double limit = config.accountRiskLimit(currency);
-            if (!TradeEngine.withinLimit(account.absoluteExposureItems(currency, market), added, limit)) {
-                return REJECT_QUOTA;
-            }
-            double serverLimit = config.serverRiskLimit(currency);
-            if (!Double.isInfinite(serverLimit)) {
-                double held = 0.0D;
-                for (Account other : this.state.accounts().all()) {
-                    held += other.absoluteExposureItems(currency, market);
-                }
-                if (!TradeEngine.withinLimit(held, added, serverLimit)) {
-                    return REJECT_QUOTA;
-                }
-            }
-        }
-        return null;
     }
 
     private void closePosition(ServerPlayer player, long positionId) {

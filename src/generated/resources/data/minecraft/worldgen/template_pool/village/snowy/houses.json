@@ -341,7 +341,7 @@
         },
         "projection": "rigid"
       },
-      "weight": 3
+      "weight": 8
     }
   ],
   "fallback": "minecraft:village/snowy/terminators"

@@ -76,20 +76,16 @@ class FxStreamCodecsTest {
         long[] balances = new long[count];
         long[] realized = new long[count];
         long[] freeMargin = new long[count];
-        double[] riskRoom = new double[count];
         long[] debtSince = new long[count];
         int goldIndex = Currencies.index(GOLD);
         int dirtIndex = Currencies.index(DIRT);
         balances[goldIndex] = -3_000_000L;
         realized[goldIndex] = 12L;
         freeMargin[dirtIndex] = 5_000_000L;
-        Arrays.fill(riskRoom, Double.POSITIVE_INFINITY);
-        riskRoom[dirtIndex] = 8_192.0D;
-        riskRoom[goldIndex] = 0.0D;
         debtSince[goldIndex] = 4_000L;
         int welcomeCurrency = Currencies.index(EMERALD);
         long welcomeItems = 10L;
-        FxAccountPayload payload = new FxAccountPayload(balances, realized, freeMargin, riskRoom,
+        FxAccountPayload payload = new FxAccountPayload(balances, realized, freeMargin,
                 List.of(new FxPositionPayload(7L, 3, 1, 64, 100, 1.5D, 1.6D, 40_000L, 12L, 25L, 900L, dirtIndex)),
                 true, 9L, true, true, true, "kurumi", 21, debtSince, true, welcomeCurrency, welcomeItems,
                 Membership.PRO.id(), 40_000L, false, 12_000L, List.of());
@@ -100,7 +96,6 @@ class FxStreamCodecsTest {
             assertArrayEquals(balances, decoded.balances());
             assertArrayEquals(realized, decoded.realized());
             assertArrayEquals(freeMargin, decoded.freeMargin());
-            assertArrayEquals(riskRoom, decoded.riskRoom());
             assertArrayEquals(debtSince, decoded.debtSince());
             assertEquals(payload.positions(), decoded.positions());
             assertEquals(payload.marginCall(), decoded.marginCall());

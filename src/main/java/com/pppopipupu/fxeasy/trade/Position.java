@@ -127,18 +127,4 @@ public final class Position {
         return Money.round(FeeModel.toItems(unrealizedQuoteItems(market, discount), this.pair, this.marginCurrency,
                 market.rate(this.marginCurrency, this.pair.quote()), discount));
     }
-
-    /// Signed exposure of this position in items of one currency: positive when the position is long that
-    /// currency and negative when it is short it. A position is long the base of its pair and short the quote,
-    /// and the margin currency is where it settles rather than what it holds.
-    public double exposureItems(Currency currency, MarketEngine market) {
-        double base = this.signedBaseUnits;
-        if (currency == this.pair.base()) {
-            return base;
-        }
-        if (currency == this.pair.quote()) {
-            return -base * market.price(this.pair);
-        }
-        return 0.0D;
-    }
 }

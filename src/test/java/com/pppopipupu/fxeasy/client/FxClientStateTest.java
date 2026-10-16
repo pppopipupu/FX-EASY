@@ -92,7 +92,8 @@ class FxClientStateTest {
         int oldest = 11;
         assertEquals(FxClientState.LISTING_SAMPLES, state.listingSamples());
         assertEquals(oldest / 512.0D, state.listingWindowSample(PAIR, Timeframe.ALL.getLast(), 0));
-        assertEquals((3610.0D / oldest - 1.0D) * 100.0D, state.listingChange(PAIR, Timeframe.ALL.getLast()));
+        int newest = oldest + FxClientState.LISTING_SAMPLES - 1;
+        assertEquals((newest / (double) oldest - 1.0D) * 100.0D, state.listingChange(PAIR, Timeframe.ALL.getLast()));
     }
 
     @Test
@@ -226,30 +227,6 @@ class FxClientStateTest {
         assertEquals(0, state.orderUnits(), "so the ticket cannot build an order in it");
     }
 
-    /// The size slider reaches only as far as the exposure quota of the account still leaves it, which the
-    /// platform reports per currency: a room narrower than the free margin is what bounds the range, a room on
-    /// the quote bounds it through what one item of the base is worth, and a room that is already spent leaves
-    /// the slider empty. A platform that limits no account reports no bound at all.
-    @Test
-    void theSizeSliderNeverReachesPastTheRoomTheQuotaLeaves() {
-        FxClientState state = new FxClientState();
-        state.applyMarket(market(0L, 1.0D));
-        state.applyAccount(account(room(2_048.0D, 4.0D)));
-        state.setOrderMargin(DIRT);
-        state.setOrderLeverage(100);
-        assertEquals(2_048, state.maxOrderUnits(), "the room bounds the range before the free margin does");
-        state.setOrderUnits(2_049);
-        assertEquals(2_048, state.orderUnits(), "a size past the room is pulled down to it");
-        state.applyAccount(account(room(2_048.0D, 2.0D)));
-        assertEquals(1_024, state.maxOrderUnits(), "half the room on the quote buys half the gold");
-        state.applyAccount(account(room(0.0D, 4.0D)));
-        assertEquals(0, state.maxOrderUnits(), "a room that is spent backs nothing");
-        state.setOrderUnits(1);
-        assertEquals(0, state.orderUnits(), "so the ticket cannot build an order in that pair");
-        state.applyAccount(account(unlimited()));
-        assertTrue(state.maxOrderUnits() > 2_048, "a platform that limits no account bounds nothing");
-    }
-
     /// The plan of the subscription is what the ticket is bounded by: the ceiling of the plan is where the
     /// leverage stops, and every cost the panel quotes is the discount of that plan off the retail figure, so a
     /// client that was told about a plan quotes the prices that plan really trades at. The plan the platform
@@ -259,7 +236,7 @@ class FxClientStateTest {
     void thePlanOfTheAccountBoundsTheTicketAndDiscountsItsCosts() {
         FxClientState state = new FxClientState();
         state.applyMarket(market(0L, 1.0D));
-        state.applyAccount(account(unlimited()));
+        state.applyAccount(account());
         assertEquals(Membership.NONE, state.membership());
         assertEquals(Membership.NONE.maxLeverage(), state.maxOrderLeverage());
         assertEquals(FeeDiscount.NONE, state.feeDiscount());
@@ -267,7 +244,7 @@ class FxClientStateTest {
         state.setOrderLeverage(Membership.PRO.maxLeverage());
         assertEquals(Membership.NONE.maxLeverage(), state.orderLeverage(),
                 "an account without a subscription stops at the retail ceiling");
-        state.applyAccount(account(Membership.PRO, 4_000L, true, List.of(), unlimited()));
+        state.applyAccount(account(Membership.PRO, 4_000L, true, List.of()));
         assertEquals(Membership.PRO, state.membership());
         assertEquals(Membership.PRO.discount(), state.feeDiscount());
         assertEquals(4_000L, state.membershipTicksLeft());
@@ -281,51 +258,30 @@ class FxClientStateTest {
     }
 
     /// A snapshot of an account that was opened and walked through the terminal in some earlier world, holding
-    /// 64 dirt items of balance with 24 of them locked, and 2 gold items with one of them locked. The risk room
-    /// is what the platform still leaves the account, [Double#POSITIVE_INFINITY] while it limits no account. The
-    /// account carries no subscription, which is what a world that never saw the shop reports.
-    private static FxAccountPayload account(double[] riskRoom, FxPositionPayload... positions) {
-        return account(Membership.NONE, 0L, false, List.of(), riskRoom, positions);
+    /// 64 dirt items of balance with 24 of them locked, and 2 gold items with one of them locked. The account
+    /// carries no subscription, which is what a world that never saw the shop reports.
+    private static FxAccountPayload account(FxPositionPayload... positions) {
+        return account(Membership.NONE, 0L, false, List.of(), positions);
     }
 
     private static FxAccountPayload account(Membership plan, long until, boolean autoRenew, List<ItemStack> lounge,
-            double[] riskRoom, FxPositionPayload... positions) {
+            FxPositionPayload... positions) {
         long[] balances = new long[Currencies.count()];
         long[] freeMargin = new long[Currencies.count()];
         balances[Currencies.index(DIRT)] = 64L * Money.UNIT;
         freeMargin[Currencies.index(DIRT)] = 40L * Money.UNIT;
         balances[Currencies.index(GOLD)] = 2L * Money.UNIT;
         freeMargin[Currencies.index(GOLD)] = Money.UNIT;
-        return new FxAccountPayload(balances, new long[Currencies.count()], freeMargin, riskRoom, List.of(positions),
+        return new FxAccountPayload(balances, new long[Currencies.count()], freeMargin, List.of(positions),
                 false, 0L, true, true, true, "kurumi", 21, new long[Currencies.count()], false, 0, 0L,
                 plan.id(), until, autoRenew, 0L, lounge);
-    }
-
-    private static FxAccountPayload account(FxPositionPayload... positions) {
-        return account(unlimited(), positions);
-    }
-
-    /// Room of a platform that limits the exposure of no account: every currency unlimited.
-    private static double[] unlimited() {
-        double[] riskRoom = new double[Currencies.count()];
-        Arrays.fill(riskRoom, Double.POSITIVE_INFINITY);
-        return riskRoom;
-    }
-
-    /// Room of a platform that limits the risk an account carries: that many items of dirt and of gold, and
-    /// nothing said about the other currencies, which stay unlimited.
-    private static double[] room(double dirt, double gold) {
-        double[] riskRoom = unlimited();
-        riskRoom[Currencies.index(DIRT)] = dirt;
-        riskRoom[Currencies.index(GOLD)] = gold;
-        return riskRoom;
     }
 
     /// The same account in a world whose platform has not handed the welcome capital over yet, with nothing on
     /// the balance either.
     private static FxAccountPayload unpaid() {
         long[] zeros = new long[Currencies.count()];
-        return new FxAccountPayload(zeros.clone(), zeros.clone(), zeros.clone(), unlimited(), List.of(), false, 0L,
+        return new FxAccountPayload(zeros.clone(), zeros.clone(), zeros.clone(), List.of(), false, 0L,
                 true, true, false, "kurumi", 21, zeros.clone(), false, 0, 0L, Membership.NONE.id(), 0L, false, 0L,
                 List.of());
     }

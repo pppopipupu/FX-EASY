@@ -68,7 +68,10 @@ public final class FxState {
         long executionRng = snapshot.executionRng() == Long.MIN_VALUE
                 ? MarketEngine.derive(priceRng, MarketEngine.EXECUTION_RNG_DOMAIN)
                 : snapshot.executionRng();
-        MarketEngine market = new MarketEngine(worldSeed, priceRng, eventRng, executionRng,
+        long volumeRng = snapshot.volumeRng() == Long.MIN_VALUE
+                ? MarketEngine.derive(priceRng, MarketEngine.VOLUME_RNG_DOMAIN)
+                : snapshot.volumeRng();
+        MarketEngine market = new MarketEngine(worldSeed, priceRng, eventRng, executionRng, volumeRng,
                 FxConfig.get().volatilityScale());
         market.restoreClock(marketTick);
         for (CurrencyRow row : snapshot.currencies()) {
@@ -174,7 +177,8 @@ public final class FxState {
             accounts.add(writeAccount(account));
         }
         return new FxSnapshot(FxSnapshot.SCHEMA_VERSION, this.economy.marketTick(), this.chartEpoch, this.market.priceRng().state(),
-                this.market.eventRng().state(), this.market.executionRng().state(), this.market.lastRolloverDay(),
+                this.market.eventRng().state(), this.market.executionRng().state(), this.market.volumeRng().state(),
+                this.market.lastRolloverDay(),
                 this.marketAnchor, currencies, series, Optional.of(this.economy.snapshot()), this.events.snapshot(), accounts);
     }
 

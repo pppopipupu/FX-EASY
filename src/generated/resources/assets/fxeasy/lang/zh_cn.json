@@ -307,7 +307,6 @@
   "fxeasy.reject.margin": "可用保证金不足",
   "fxeasy.reject.position": "找不到该仓位",
   "fxeasy.reject.positions": "持仓数量已达上限",
-  "fxeasy.reject.quota": "已达风险额度：这笔订单会超出该币种的持仓上限",
   "fxeasy.reject.shop.currency": "本世界未交易该档位所需的币种",
   "fxeasy.reject.shop.downgrade": "该档位低于账户当前的档位",
   "fxeasy.reject.shop.funds": "账户余额不足以支付该档位",

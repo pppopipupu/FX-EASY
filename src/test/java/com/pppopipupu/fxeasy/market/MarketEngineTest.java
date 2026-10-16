@@ -103,6 +103,21 @@ class MarketEngineTest {
         assertEquals(2, series.snapshot(false).size());
     }
 
+    /// Every timeframe keeps a window of its own: the ticks that close an hourly candle leave the minute and
+    /// quarter hour candles they contain closing on their own boundaries, and one window never reads another.
+    @Test
+    void everyTimeframeKeepsItsOwnWindow() {
+        MarketEngine market = new MarketEngine(11L);
+        CurrencyPair pair = Currencies.pair(1);
+        long hour = Timeframe.H1.ticks();
+        for (long tick = 1L; tick <= hour; tick++) {
+            market.advance(tick, noChange(), MarketDriverFrame.calm());
+        }
+        assertEquals(1, market.series(pair, Timeframe.H1).snapshot(false).size(), "the hour closed once");
+        assertEquals(hour / Timeframe.M15.ticks(), market.series(pair, Timeframe.M15).snapshot(false).size());
+        assertEquals(hour / Timeframe.M1.ticks(), market.series(pair, Timeframe.M1).snapshot(false).size());
+    }
+
     @Test
     void rolloverFiresOncePerDay() {
         MarketEngine market = new MarketEngine(5L);
@@ -126,10 +141,11 @@ class MarketEngineTest {
         assertEquals(1, market.series(Currencies.pair(0), Timeframe.M1).snapshot(true).size());
     }
 
-    /// The three generators are separate state: consuming the event generator or the execution generator cannot
-    /// change the price series a world produces, which is what stops trading activity from picking the news.
+    /// The generators are separate state: consuming the event generator, the execution generator or the volume
+    /// generator cannot change the price series a world produces, which is what stops trading activity from
+    /// picking the news and keeps the volume of a candle off the price path.
     @Test
-    void theThreeGeneratorsAreIndependent() {
+    void theGeneratorsAreSeparateStreams() {
         MarketEngine first = new MarketEngine(29L);
         MarketEngine second = new MarketEngine(29L);
         for (int tick = 0; tick < 500; tick++) {
@@ -139,12 +155,31 @@ class MarketEngineTest {
             second.advance(tick, noChange(), MarketDriverFrame.calm());
             second.eventRng().nextGaussian();
             second.executionRng().nextDouble();
+            second.volumeRng().nextDouble();
         }
         for (Currency currency : Currencies.all()) {
             assertEquals(first.logPrice(currency), second.logPrice(currency), 0.0D, currency.name());
         }
         assertEquals(first.priceRng().state(), second.priceRng().state());
         assertNotEquals(first.eventRng().state(), second.eventRng().state());
+        assertNotEquals(first.volumeRng().state(), second.volumeRng().state());
+    }
+
+    /// A trade the players executed is booked into the candle of the pair it traded, in items of that pair's base
+    /// currency, and into the candle of no other pair.
+    @Test
+    void aPlayerTradeLandsInTheCandleOfItsOwnPair() {
+        MarketEngine market = new MarketEngine(37L);
+        CurrencyPair pair = Currencies.pair(2);
+        CurrencyPair other = Currencies.pair(5);
+        market.advance(1L, noChange(), MarketDriverFrame.calm());
+        double before = market.series(pair, Timeframe.M1).current().volume();
+        double otherBefore = market.series(other, Timeframe.M1).current().volume();
+        market.addTradeVolume(pair, 2_500.0D);
+        assertEquals(before + 2_500.0D, market.series(pair, Timeframe.M1).current().volume(), 1.0E-9D,
+                "the world's own volume of the candle is still in it");
+        assertEquals(otherBefore, market.series(other, Timeframe.M1).current().volume(), 1.0E-9D,
+                "another pair traded nothing of it");
     }
 
     /// The fundamental component and the event component both move a level, and the attribution of a bucket adds
@@ -189,7 +224,8 @@ class MarketEngineTest {
         MarketEngine calm = new MarketEngine(23L);
         MarketEngine wider = new MarketEngine(23L, 23L,
                 MarketEngine.derive(23L, MarketEngine.EVENT_RNG_DOMAIN),
-                MarketEngine.derive(23L, MarketEngine.EXECUTION_RNG_DOMAIN), scale);
+                MarketEngine.derive(23L, MarketEngine.EXECUTION_RNG_DOMAIN),
+                MarketEngine.derive(23L, MarketEngine.VOLUME_RNG_DOMAIN), scale);
         for (int tick = 0; tick < 20_000; tick++) {
             calm.advance(tick, noChange(), MarketDriverFrame.calm());
             wider.advance(tick, noChange(), MarketDriverFrame.calm());

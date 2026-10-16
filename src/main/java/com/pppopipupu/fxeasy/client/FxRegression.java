@@ -191,6 +191,9 @@ public final class FxRegression {
         script.step("chart: a longer timeframe", () -> up("timeframe." + Timeframe.M5.name()),
                 () -> click("timeframe." + Timeframe.M5.name()),
                 () -> state().selectedTimeframe() == Timeframe.M5 ? null : "the timeframe did not move");
+        script.step("chart: the longest timeframe", () -> up("timeframe." + Timeframe.H1.name()),
+                () -> click("timeframe." + Timeframe.H1.name()),
+                () -> state().selectedTimeframe() == Timeframe.H1 ? null : "the hourly chart did not open");
         script.step("chart: the shortest timeframe", () -> up("timeframe." + Timeframe.M1.name()),
                 () -> click("timeframe." + Timeframe.M1.name()),
                 () -> state().selectedTimeframe() == Timeframe.M1 ? null : "the timeframe did not come back");

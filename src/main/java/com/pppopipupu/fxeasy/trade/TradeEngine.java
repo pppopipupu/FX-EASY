@@ -27,9 +27,10 @@ public final class TradeEngine {
     public static final int MIN_LEVERAGE = 1;
     public static final int MAX_POSITIONS = 64;
     public static final long MAX_UNITS = 1_000_000L;
-    /// Most items one order may name. The exposure limits refuse far less than this in every currency; the bound
-    /// is here so a hand written packet cannot ask the price process for an arbitrary notional.
-    public static final int MAX_ORDER_UNITS = 1_000_000;
+    /// Most items one order may name, which is the ceiling the ticket builds its size against. The bound is here
+    /// so a hand written packet cannot ask the price process for an arbitrary notional; what an account can
+    /// actually reach is its own free margin.
+    public static final int MAX_ORDER_UNITS = 100_000_000;
     /// Equity of a currency over the margin locked in that same currency below which the platform calls for more
     /// margin, and at or below which it closes the account out. The level it watches is the lowest one of the
     /// currencies the account holds, each measured on its own: a balance in one currency never covers the
@@ -80,7 +81,9 @@ public final class TradeEngine {
     /// needs from `marginCurrency`. Any of the legal tender currencies may back any pair, which is the whole
     /// point of the platform: a trader who holds dirt backs their netherite trade with dirt rather than having
     /// to buy netherite first. An account whose debt has been outstanding too long may not open anything, but it
-    /// may still close, deposit and withdraw, which is the only way the debt ever gets repaid.
+    /// may still close, deposit and withdraw, which is the only way the debt ever gets repaid. The entry is
+    /// filled at the spread of the side it takes, which the platform charges more of on the short side than on
+    /// the long one, so a position that sells pays more to open than one that buys.
     public static OpenResult open(Account account, CurrencyPair pair, Side side, Currency marginCurrency, int units,
             int leverage, MarketEngine market) {
         if (!account.opened()) {
@@ -104,10 +107,12 @@ public final class TradeEngine {
         if (account.freeMargin(marginCurrency) < margin) {
             return new OpenResult.Rejected(REJECT_MARGIN);
         }
-        FeeModel.Fill fill = FeeModel.fill(side, market.price(pair), market.regime(pair), market.executionRng(), discount);
+        FeeModel.Fill fill = FeeModel.openFill(side, market.price(pair), market.regime(pair), market.executionRng(),
+                discount);
         Position position = new Position(account.allocatePositionId(), pair, side, marginCurrency, units, leverage,
                 fill.price(), units, margin, market.marketTick());
         account.addPosition(position);
+        market.addTradeVolume(pair, units);
         return new OpenResult.Opened(position, fill);
     }
 
@@ -144,6 +149,7 @@ public final class TradeEngine {
         account.addBalance(marginCurrency, pnlMicro);
         account.addRealized(marginCurrency, pnlMicro);
         account.removePosition(position);
+        market.addTradeVolume(pair, position.baseUnits());
         return new CloseResult.Closed(position, fill, pnlMicro);
     }
 
@@ -155,26 +161,6 @@ public final class TradeEngine {
             }
         }
         return closed;
-    }
-
-    /// Absolute risk an order would add to one currency, in items of that currency: a market order of that size
-    /// is long the base and short the quote, so the base carries `units` items and the quote carries the same
-    /// notional in its own items. The margin currency is not part of it.
-    public static double addedExposureItems(int units, CurrencyPair pair, Currency currency, double pairPrice) {
-        if (currency == pair.base()) {
-            return units;
-        }
-        if (currency == pair.quote()) {
-            return units * pairPrice;
-        }
-        return 0.0D;
-    }
-
-    /// The platform's own exposure limit on one currency, in items of that currency. Absolute risk is what it
-    /// measures, so an order that would reduce or close existing risk is always allowed: only new risk is
-    /// refused.
-    public static boolean withinLimit(double current, double added, double limit) {
-        return !(current + added > limit);
     }
 
     /// Settles one market day of swap on every open position, taken from the currency each position locks and

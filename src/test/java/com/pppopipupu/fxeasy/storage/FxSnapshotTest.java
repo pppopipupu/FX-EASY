@@ -71,6 +71,7 @@ class FxSnapshotTest {
         assertEquals(market.priceRng().state(), restored.market().priceRng().state());
         assertEquals(market.eventRng().state(), restored.market().eventRng().state());
         assertEquals(market.executionRng().state(), restored.market().executionRng().state());
+        assertEquals(market.volumeRng().state(), restored.market().volumeRng().state());
         assertEquals(market.lastRolloverDay(), restored.market().lastRolloverDay());
         assertEquals(state.economy().marketTick(), restored.economy().marketTick());
         for (Currency currency : Currencies.all()) {
@@ -156,8 +157,8 @@ class FxSnapshotTest {
         FxSnapshot.AccountRow row = new FxSnapshot.AccountRow(owner.toString(), List.of(), List.of(),
                 List.of(new FxSnapshot.PositionRow(7L, PAIR.id(), Side.SELL.name(), 0, 100, 1.0D, 2048.0D, 40_000L, 0L, 0L, "")),
                 8L, 0L, true, true, false, "kurumi", 21, List.of(), Optional.empty());
-        FxSnapshot legacy = new FxSnapshot(1, 0L, 0L, 0L, Long.MIN_VALUE, Long.MIN_VALUE, -1L, Long.MIN_VALUE,
-                List.of(), List.of(), Optional.empty(), EventRow.empty(), List.of(row));
+        FxSnapshot legacy = new FxSnapshot(1, 0L, 0L, 0L, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, -1L,
+                Long.MIN_VALUE, List.of(), List.of(), Optional.empty(), EventRow.empty(), List.of(row));
         FxState state = FxState.restore(legacy, SEED, 0L);
         Position restored = state.accounts().get(owner).position(7L);
         assertEquals(PAIR.quote(), restored.marginCurrency());
@@ -182,8 +183,8 @@ class FxSnapshotTest {
                     Double.NaN, 0.0D, 0.0D));
         }
         FxSnapshot legacy = new FxSnapshot(1, 0L, 0L, old.priceRng().state(), Long.MIN_VALUE, Long.MIN_VALUE,
-                Math.floorDiv(gameTime, MarketEngine.TICKS_PER_DAY) - 1L, Long.MIN_VALUE, currencies, List.of(),
-                Optional.empty(), EventRow.empty(), List.of());
+                Long.MIN_VALUE, Math.floorDiv(gameTime, MarketEngine.TICKS_PER_DAY) - 1L, Long.MIN_VALUE, currencies,
+                List.of(), Optional.empty(), EventRow.empty(), List.of());
 
         FxState state = FxState.restore(legacy, SEED, gameTime);
         assertTrue(state.migrated());

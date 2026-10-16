@@ -6,7 +6,10 @@ import module java.base;
 /// volatility regime of the pair, so a crashing currency trades wider and is dearer to hold. The swap itself is
 /// the interest difference of the two currencies of a pair - the platform pays it to a position that holds the
 /// higher yielding currency and takes it from one that holds the lower - and everything the platform keeps on
-/// top of a mid rate is a markup the trader pays whichever way the money moves.
+/// top of a mid rate is a markup the trader pays whichever way the money moves. The one cost that is not the
+/// same on both sides of the book is the spread of the order that opens a position: the side that sells a pair
+/// pays [SHORT_OPEN_SPREAD_MULTIPLE] times the spread of the side that buys it, so a short is dearer to open
+/// than a long.
 ///
 /// A [FeeDiscount] scales every cost the trader pays: a subscription of the terminal buys part of the spread,
 /// of the slippage, of the swap and of the conversion spread down. What the platform pays a position is never
@@ -16,6 +19,11 @@ public final class FeeModel {
 
     /// Total bid/ask spread of a calm market as a fraction of the mid price.
     public static final double BASE_SPREAD = 0.0002D;
+    /// Multiple of the half spread a position pays to open on the side that sells. The platform charges the
+    /// short side of a pair more than the long side for the same liquidity; the order that closes a position is
+    /// the plain [fill] of the opposite side, so the surcharge is paid once per position and never on the way
+    /// out.
+    public static final double SHORT_OPEN_SPREAD_MULTIPLE = 1.5D;
     /// Share of the interest difference the platform keeps on each side of an overnight swap.
     public static final double SWAP_MARKUP = 0.25D;
     /// Total spread of the platform's currency conversion around the mid rate.
@@ -34,6 +42,13 @@ public final class FeeModel {
 
     public static double halfSpread(double regime, FeeDiscount discount) {
         return BASE_SPREAD * 0.5D * regime * discount.spreadScale();
+    }
+
+    /// Half the spread an order that opens a position on `side` pays: the spread of the pair, times
+    /// [SHORT_OPEN_SPREAD_MULTIPLE] on the side that sells. The platform fills an order with this and the panel
+    /// quotes one with it, so what a ticket shows for the side it is on is what the fill charges.
+    public static double openHalfSpread(Side side, double regime, FeeDiscount discount) {
+        return halfSpread(regime, discount) * (side == Side.SELL ? SHORT_OPEN_SPREAD_MULTIPLE : 1.0D);
     }
 
     /// Total conversion spread the platform charges around a mid rate under one plan, which is what the panel
@@ -103,10 +118,21 @@ public final class FeeModel {
         return BASE_SLIPPAGE * regime * discount.slippageScale();
     }
 
+    /// Executes an order that opens a position against the mid price, at the spread of the side that trades it,
+    /// which is the wider one when that side is the short side.
+    public static Fill openFill(Side side, double mid, double regime, Rng rng, FeeDiscount discount) {
+        return fill(side, mid, regime, rng, discount, openHalfSpread(side, regime, discount));
+    }
+
     /// Executes a market order against the mid price: the spread is paid first, then the order may slip
-    /// further into the unfavourable direction.
+    /// further into the unfavourable direction. This is the fill of an order that closes a position, which pays
+    /// the spread of the side it trades and not the surcharge of opening one.
     public static Fill fill(Side side, double mid, double regime, Rng rng, FeeDiscount discount) {
-        double halfSpread = halfSpread(regime, discount);
+        return fill(side, mid, regime, rng, discount, halfSpread(regime, discount));
+    }
+
+    private static Fill fill(Side side, double mid, double regime, Rng rng, FeeDiscount discount,
+            double halfSpread) {
         double slipped = 0.0D;
         boolean slippedFlag = rng.nextChance(slippageChance(regime));
         if (slippedFlag) {

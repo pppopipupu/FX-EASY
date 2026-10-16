@@ -43,6 +43,17 @@ public final class MarketEngine {
     /// generator still reproduces the other two.
     public static final long EVENT_RNG_DOMAIN = 0x51A7E9C4D2B1F803L;
     public static final long EXECUTION_RNG_DOMAIN = 0x2C6D19B7A3E54F81L;
+    public static final long VOLUME_RNG_DOMAIN = 0x7B1D43A9C6F80E52L;
+    /// Share of what the scarcer side of a pair produces in one economic day that the world trades of that pair
+    /// in the same day, before the regime and the randomness of the tick are applied. It is what a volume bar of
+    /// the chart is measured against: a currency the world makes little of is also one little of it changes
+    /// hands, and a player order is measured on the same scale.
+    public static final double WORLD_VOLUME_SHARE = 0.25D;
+    /// Share of the market ticks the world trades on at all. Volume clusters rather than spreading evenly, so a
+    /// tick either trades nothing or trades the many ticks it stands for: a candle of twelve hundred ticks then
+    /// carries a dozen bursts of different sizes instead of the same average a dozen times over, which is what
+    /// makes one bar of a chart taller than the bar beside it.
+    public static final double WORLD_TRADE_CHANCE = 0.01D;
 
     private final List<Currency> currencies;
     private final List<CurrencyPair> pairs;
@@ -64,6 +75,7 @@ public final class MarketEngine {
     private final Rng priceRng;
     private final Rng eventRng;
     private final Rng executionRng;
+    private final Rng volumeRng;
 
     private long marketTick;
     private long lastRolloverDay = -1L;
@@ -73,24 +85,30 @@ public final class MarketEngine {
         this(seed, seed);
     }
 
-    /// Builds the price process of a fresh world. All three generators are derived from the world seed through
+    /// Builds the price process of a fresh world. All four generators are derived from the world seed through
     /// separate domains, so a world reproduces exactly from its seed and no channel can consume another's
     /// randomness.
     public MarketEngine(long worldSeed, long priceSeed) {
         this(worldSeed, priceSeed, derive(priceSeed, EVENT_RNG_DOMAIN), derive(priceSeed, EXECUTION_RNG_DOMAIN));
     }
 
-    /// Builds the price process from the three generator states a save carries. The world seed is kept for the
-    /// components that are not random at all.
+    /// Builds the price process from the generator states a save carries. The world seed is kept for the
+    /// components that are not random at all, and the volume generator is derived from the price generator when
+    /// the save predates it.
     public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed) {
-        this(worldSeed, priceSeed, eventSeed, executionSeed, DEFAULT_VOLATILITY_SCALE);
+        this(worldSeed, priceSeed, eventSeed, executionSeed, derive(priceSeed, VOLUME_RNG_DOMAIN));
+    }
+
+    public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed, long volumeSeed) {
+        this(worldSeed, priceSeed, eventSeed, executionSeed, volumeSeed, DEFAULT_VOLATILITY_SCALE);
     }
 
     /// Builds the price process of one world at the volatility the world is tuned to. The scale multiplies what
     /// the currency definitions name before anything reads it, so a world retunes how far its rates swing in one
     /// place: the noise keeps its share of the tuned daily volatility and the regime keeps measuring the market
     /// against the same tuned process.
-    public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed, double volatilityScale) {
+    public MarketEngine(long worldSeed, long priceSeed, long eventSeed, long executionSeed, long volumeSeed,
+            double volatilityScale) {
         if (!(volatilityScale > 0.0D) || !Double.isFinite(volatilityScale)) {
             throw new IllegalArgumentException("volatility scale must be a positive number");
         }
@@ -133,6 +151,7 @@ public final class MarketEngine {
         this.priceRng = new Rng(priceSeed);
         this.eventRng = new Rng(eventSeed);
         this.executionRng = new Rng(executionSeed);
+        this.volumeRng = new Rng(volumeSeed);
     }
 
     /// A stable child seed: the same base always yields the same child, so a save that only stored one generator
@@ -165,6 +184,12 @@ public final class MarketEngine {
     /// Randomness of order execution. Only slippage draws on it.
     public Rng executionRng() {
         return this.executionRng;
+    }
+
+    /// Randomness of the world's own trading volume. It is the only channel that draws on it, so a chart can
+    /// never pick a price and a price can never pick a volume bar.
+    public Rng volumeRng() {
+        return this.volumeRng;
     }
 
     /// Items of `to` one item of `from` is worth right now, which is the only kind of price this market has.
@@ -240,14 +265,47 @@ public final class MarketEngine {
             prices[pair.index()] = price(pair);
         }
         for (CurrencyPair pair : this.pairs) {
+            double volume = worldVolume(pair);
             for (Timeframe timeframe : Timeframe.ALL) {
-                this.series[pair.index()][timeframe.ordinal()].accept(marketTick, prices[pair.index()]);
+                this.series[pair.index()][timeframe.ordinal()].accept(marketTick, prices[pair.index()], volume);
             }
         }
         long day = Math.floorDiv(marketTick, TICKS_PER_DAY);
         boolean rollover = this.lastRolloverDay >= 0L && day != this.lastRolloverDay;
         this.lastRolloverDay = day;
         return rollover;
+    }
+
+    /// Items of the base currency the world trades of this pair in one economic day, before the regime and the
+    /// randomness of the tick: a share of what the scarcer side of the pair produces in the same day, so a pair
+    /// whose quote the world makes little of is also a pair little of it changes hands of. Nothing here is a
+    /// level of the price process - it is a size, in items, which is the only thing the chart scales it against.
+    private double dailyVolume(CurrencyPair pair) {
+        double base = pair.base().capacity();
+        double quote = pair.quote().capacity() / price(pair);
+        return Math.min(base, quote) * WORLD_VOLUME_SHARE;
+    }
+
+    /// The world's own trading of this market tick, in items of the base currency of the pair: nothing on most
+    /// ticks, and otherwise one day of the pair spread over the ticks of a day, widened by the regime it is in,
+    /// scaled up for the ticks that trade nothing, and drawn as an exponential, so the bursts themselves are of
+    /// different sizes. What the players trade is added on top of it by [#addTradeVolume], and both are what a
+    /// volume bar of the chart shows.
+    private double worldVolume(CurrencyPair pair) {
+        if (!this.volumeRng.nextChance(WORLD_TRADE_CHANCE)) {
+            return 0.0D;
+        }
+        double burst = dailyVolume(pair) / TICKS_PER_DAY * regime(pair) / WORLD_TRADE_CHANCE;
+        return burst * -Math.log(1.0D - this.volumeRng.nextDouble());
+    }
+
+    /// Books a trade that executed on this pair into the candle every timeframe is forming, in items of the base
+    /// currency of the pair. The world's own trading and what the players trade are the same quantity to a chart,
+    /// which is what a volume bar shows, so both land in the same candle.
+    public void addTradeVolume(CurrencyPair pair, double baseItems) {
+        for (Timeframe timeframe : Timeframe.ALL) {
+            this.series[pair.index()][timeframe.ordinal()].addVolume(baseItems);
+        }
     }
 
     /// Log return a pair is expected to make over one market day, `(rate(quote) - rate(base)) / 365`. The higher

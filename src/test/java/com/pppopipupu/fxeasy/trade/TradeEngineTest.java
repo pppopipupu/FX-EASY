@@ -30,6 +30,21 @@ class TradeEngineTest {
     /// of 2048 dirt is four gold at the rate the world opens on.
     private static final int SIZE = 2_048;
 
+    /// The ceiling the ticket builds its size against is what the platform accepts: an order of a hundred
+    /// million items goes through once the account locks the margin it needs, and one item more is refused
+    /// rather than priced.
+    @Test
+    void anOrderAtTheSizeCeilingIsAccepted() {
+        MarketEngine market = new MarketEngine(43L);
+        double collateral = FeeModel.collateralRate(PAIR, GOLD, market.rate(GOLD, PAIR.quote()), FeeDiscount.NONE);
+        long margin = TradeEngine.requiredMargin(TradeEngine.MAX_ORDER_UNITS, 1, market.price(PAIR), collateral);
+        Account account = openedAccount(GOLD, (long) Money.units(margin) + 1L);
+        assertInstanceOf(TradeEngine.OpenResult.Opened.class,
+                TradeEngine.open(account, PAIR, Side.BUY, GOLD, TradeEngine.MAX_ORDER_UNITS, 1, market));
+        assertRejected(TradeEngine.open(account, PAIR, Side.BUY, GOLD, TradeEngine.MAX_ORDER_UNITS + 1, 1, market),
+                TradeEngine.REJECT_SIZE);
+    }
+
     @Test
     void depositTakesItemsAndWithdrawReturnsThem() {
         Account account = new Account(UUID.randomUUID());
@@ -301,73 +316,6 @@ class TradeEngineTest {
         assertTrue(account.equityItems(GOLD, market) > balances * 0.99D);
         assertEquals(Math.min(account.marginLevel(DIRT, market), account.marginLevel(GOLD, market)),
                 account.marginLevel(market), 1.0E-12D);
-    }
-
-    /// A position is long the base of its pair and short the quote, whatever currency backs its margin, and the
-    /// platform measures the absolute risk of each side rather than the net of them.
-    @Test
-    void exposureIsLongTheBaseAndShortTheQuote() {
-        MarketEngine market = new MarketEngine(61L);
-        Account account = openedAccount(GOLD, 2L);
-        TradeEngine.OpenResult.Opened opened = open(account, Side.BUY, market);
-        double rate = market.price(PAIR);
-        assertEquals(SIZE, account.signedExposureItems(DIRT, market), 1.0E-9D);
-        assertEquals(-SIZE * rate, account.signedExposureItems(GOLD, market), 1.0E-9D);
-        assertEquals(0.0D, account.signedExposureItems(DIAMOND, market), 1.0E-9D);
-        assertEquals(SIZE, account.absoluteExposureItems(DIRT, market), 1.0E-9D);
-        assertEquals(SIZE * rate, account.absoluteExposureItems(GOLD, market), 1.0E-9D);
-
-        TradeEngine.OpenResult.Opened opposite = assertInstanceOf(TradeEngine.OpenResult.Opened.class,
-                TradeEngine.open(account, PAIR, Side.SELL, GOLD, SIZE, 100, market));
-        assertEquals(0.0D, account.signedExposureItems(DIRT, market), 1.0E-9D);
-        assertEquals(2.0D * SIZE, account.absoluteExposureItems(DIRT, market), 1.0E-9D,
-                "an opposite position does not cancel the risk of the one already open");
-        assertTrue(opposite.position().signedBaseUnits() < 0.0D);
-        assertTrue(opened.position().signedBaseUnits() > 0.0D);
-    }
-
-    /// The risk limit only ever refuses new risk, and it measures the risk in items of the currency it is carried
-    /// in: the size of an order on the base is its own item count whatever the market does, so a crash of that
-    /// currency cannot unlock more room.
-    @Test
-    void riskLimitOnlyRefusesNewRisk() {
-        MarketEngine market = new MarketEngine(61L);
-        double rate = market.price(PAIR);
-        assertEquals(SIZE, TradeEngine.addedExposureItems(SIZE, PAIR, DIRT, rate), 1.0E-9D);
-        assertEquals(SIZE * rate, TradeEngine.addedExposureItems(SIZE, PAIR, GOLD, rate), 1.0E-9D);
-        assertEquals(0.0D, TradeEngine.addedExposureItems(SIZE, PAIR, DIAMOND, rate), 1.0E-9D);
-        assertEquals(-SIZE, TradeEngine.addedExposureItems(-SIZE, PAIR, DIRT, rate), 1.0E-9D,
-                "an order that closes the same size adds the same risk with the opposite sign");
-        assertEquals(-SIZE * rate, TradeEngine.addedExposureItems(-SIZE, PAIR, GOLD, rate), 1.0E-9D);
-        assertEquals(TradeEngine.addedExposureItems(SIZE, PAIR, DIRT, rate),
-                TradeEngine.addedExposureItems(SIZE, PAIR, DIRT, rate * 0.1D), 0.0D,
-                "the base risk is the order size, whatever the market has done to the rate");
-        assertTrue(TradeEngine.withinLimit(0.0D, SIZE, 2.0D * SIZE));
-        assertTrue(TradeEngine.withinLimit(2.0D * SIZE, 0.0D, 2.0D * SIZE), "closing is never refused");
-        assertFalse(TradeEngine.withinLimit(1.5D * SIZE, SIZE, 2.0D * SIZE));
-    }
-
-    /// What a risk limit still leaves an account is the limit less the absolute risk the open positions carry,
-    /// which is the room the terminal builds the size of its next order in: it shrinks by the size of every
-    /// position, a hedge spends it like any other order, a limit already spent leaves nothing, and a platform
-    /// that limits no account leaves the whole room.
-    @Test
-    void theRiskRoomIsTheLimitLessTheRiskAlreadyCarried() {
-        MarketEngine market = new MarketEngine(61L);
-        double rate = market.price(PAIR);
-        double limit = 10.0D * SIZE;
-        Account account = openedAccount(GOLD, 2L);
-        assertEquals(limit, account.riskRoom(DIRT, market, limit), 1.0E-9D, "nothing open leaves the whole room");
-        assertEquals(limit, account.riskRoom(GOLD, market, limit), 1.0E-9D);
-        open(account, Side.BUY, market);
-        assertEquals(limit - SIZE, account.riskRoom(DIRT, market, limit), 1.0E-9D);
-        assertEquals(limit - SIZE * rate, account.riskRoom(GOLD, market, limit), 1.0E-9D);
-        open(account, Side.SELL, market);
-        assertEquals(limit - 2.0D * SIZE, account.riskRoom(DIRT, market, limit), 1.0E-9D,
-                "the opposite position spends the same room");
-        assertEquals(0.0D, account.riskRoom(DIRT, market, SIZE), 1.0E-9D, "a limit already spent leaves nothing");
-        assertEquals(Double.POSITIVE_INFINITY, account.riskRoom(DIRT, market, Double.POSITIVE_INFINITY),
-                "a platform that limits no account leaves every room open");
     }
 
     @Test

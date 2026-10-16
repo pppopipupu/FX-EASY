@@ -3,11 +3,12 @@ package com.pppopipupu.fxeasy.market;
 import module java.base;
 
 /// Candle periods offered by the terminal. The server keeps [#MAX_CANDLES] closed candles per pair and
-/// timeframe.
+/// timeframe. One market minute is the twentieth of an economic day, so an hourly candle is three of them.
 public enum Timeframe {
     M1("1m", 1200),
     M5("5m", 6000),
-    M15("15m", 18000);
+    M15("15m", 18000),
+    H1("1h", 72000);
 
     public static final List<Timeframe> ALL = List.of(values());
     public static final int MAX_CANDLES = 512;

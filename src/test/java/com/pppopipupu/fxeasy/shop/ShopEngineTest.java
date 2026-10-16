@@ -43,8 +43,8 @@ class ShopEngineTest {
         assertEquals(Membership.GO, account.membership());
         assertEquals(1_000L + Membership.PERIOD_TICKS, account.membershipUntil());
         assertEquals(1_000L + Membership.PERIOD_TICKS, bought.untilTick());
-        assertEquals(8_888L * Money.UNIT, bought.priceMicro());
-        assertEquals(1_112L * Money.UNIT, account.balance(DIRT), "the price left the balance");
+        assertEquals(888L * Money.UNIT, bought.priceMicro());
+        assertEquals(9_112L * Money.UNIT, account.balance(DIRT), "the price left the balance");
         assertTrue(account.autoRenew(), "a plan is bought renewing itself");
         assertEquals(Membership.GO.maxLeverage(), account.maxLeverage());
         assertEquals(15L, Membership.PERIOD_TICKS / MarketEngine.TICKS_PER_DAY,
@@ -65,7 +65,7 @@ class ShopEngineTest {
         assertTrue(bought.extended());
         assertEquals(Membership.GO, account.membership());
         assertEquals(until + Membership.PERIOD_TICKS, account.membershipUntil());
-        assertEquals(balance - 8_888L * Money.UNIT, account.balance(DIRT));
+        assertEquals(balance - 888L * Money.UNIT, account.balance(DIRT));
     }
 
     /// A higher plan is the one purchase that replaces what the account holds: the ceiling moves the moment it is
@@ -132,9 +132,9 @@ class ShopEngineTest {
         ShopEngine.BuyResult.Bought bought = assertInstanceOf(ShopEngine.BuyResult.Bought.class,
                 ShopEngine.buy(account, Membership.GO, gold, 2.0D, 0L));
         assertEquals(gold, bought.paying(), "the price left the currency the player paid in");
-        assertEquals(17_784_888_000L, bought.priceMicro(),
-                "8,888 dirt at two gold the dirt, plus the half of the conversion spread the trader pays");
-        assertEquals(20_000L * Money.UNIT - 17_784_888_000L, account.balance(gold));
+        assertEquals(1_776_888_000L, bought.priceMicro(),
+                "888 dirt at two gold the dirt, plus the half of the conversion spread the trader pays");
+        assertEquals(20_000L * Money.UNIT - 1_776_888_000L, account.balance(gold));
         assertEquals(1_000L * Money.UNIT, account.balance(DIRT), "the currency of the catalogue is untouched");
         assertEquals(Membership.GO, account.membership());
         assertEquals(Membership.PERIOD_TICKS, account.membershipUntil());
@@ -254,7 +254,7 @@ class ShopEngineTest {
         assertEquals(Membership.GO, renewed.plan());
         assertEquals(Membership.GO, account.membership());
         assertEquals(until + Membership.PERIOD_TICKS, account.membershipUntil());
-        assertEquals(balance - 8_888L * Money.UNIT, account.balance(DIRT));
+        assertEquals(balance - 888L * Money.UNIT, account.balance(DIRT));
         assertInstanceOf(ShopEngine.Renewal.Renewed.class,
                 ShopEngine.settle(account, until + 4L * Membership.PERIOD_TICKS));
         assertEquals(until + 4L * Membership.PERIOD_TICKS + Membership.PERIOD_TICKS, account.membershipUntil(),
@@ -282,7 +282,7 @@ class ShopEngineTest {
     @Test
     void aRenewalTheBalanceCannotCoverLapsesThePlan() {
         Account account = opened();
-        account.addBalance(DIRT, 8_888L * Money.UNIT);
+        account.addBalance(DIRT, 888L * Money.UNIT);
         buy(account, Membership.GO, 0L);
         long until = account.membershipUntil();
         assertEquals(0L, account.balance(DIRT));

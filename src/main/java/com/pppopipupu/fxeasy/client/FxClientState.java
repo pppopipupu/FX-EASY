@@ -39,7 +39,7 @@ public final class FxClientState {
     /// Samples the ring holds, which is the longest window the terminal offers. Written out instead of derived
     /// from the timeframes because a ring sized from anything that is not a compile time constant can come out
     /// empty when the terminal is built during the initialization of the class that holds it.
-    public static final int LISTING_SAMPLES = 3600;
+    public static final int LISTING_SAMPLES = 14400;
     /// Prices of the session, indexed in the order its currency table names them. Only the ratios between them
     /// are meaningful, which is why every rate is one entry over another.
     private final double[] prices = new double[Currencies.MAX];
@@ -54,9 +54,6 @@ public final class FxClientState {
     private final long[] balances = new long[Currencies.MAX];
     private final long[] realized = new long[Currencies.MAX];
     private final long[] freeMargin = new long[Currencies.MAX];
-    /// What the exposure quota of this account still leaves it in each currency, in items of that currency, as
-    /// the platform reported it; [Double#POSITIVE_INFINITY] while the platform limits no account.
-    private final double[] riskRoom = new double[Currencies.MAX];
     /// Market tick the debt of one currency started at, zero while that balance is not in the red.
     private final long[] debtSince = new long[Currencies.MAX];
     private final Map<CurrencyPair, Map<Timeframe, List<TimedCandle>>> candles = new HashMap<>();
@@ -184,7 +181,6 @@ public final class FxClientState {
         Arrays.fill(this.balances, 0L);
         Arrays.fill(this.realized, 0L);
         Arrays.fill(this.freeMargin, 0L);
-        Arrays.fill(this.riskRoom, 0.0D);
         Arrays.fill(this.debtSince, 0L);
         this.positions.clear();
         this.candles.clear();
@@ -215,7 +211,6 @@ public final class FxClientState {
         Arrays.fill(this.balances, 0L);
         Arrays.fill(this.realized, 0L);
         Arrays.fill(this.freeMargin, 0L);
-        Arrays.fill(this.riskRoom, 0.0D);
         Arrays.fill(this.debtSince, 0L);
         this.positions.clear();
         this.equityHistory[0] = 0.0;
@@ -373,7 +368,6 @@ public final class FxClientState {
         System.arraycopy(payload.balances(), 0, this.balances, 0, Math.min(payload.balances().length, this.balances.length));
         System.arraycopy(payload.realized(), 0, this.realized, 0, Math.min(payload.realized().length, this.realized.length));
         System.arraycopy(payload.freeMargin(), 0, this.freeMargin, 0, Math.min(payload.freeMargin().length, this.freeMargin.length));
-        System.arraycopy(payload.riskRoom(), 0, this.riskRoom, 0, Math.min(payload.riskRoom().length, this.riskRoom.length));
         System.arraycopy(payload.debtSince(), 0, this.debtSince, 0, Math.min(payload.debtSince().length, this.debtSince.length));
         this.positions.clear();
         this.positions.addAll(payload.positions());
@@ -588,8 +582,15 @@ public final class FxClientState {
         return this.regime;
     }
 
+    /// Half the spread of the pair, which is the spread the platform quotes its bid and its ask around.
     public double spreadHalf() {
         return FeeModel.halfSpread(this.regime, feeDiscount());
+    }
+
+    /// Half the spread an order on `side` pays to open a position, which is the wider one on the side that
+    /// sells: the platform charges a short more to open than a long.
+    public double openSpreadHalf(Side side) {
+        return FeeModel.openHalfSpread(side, this.regime, feeDiscount());
     }
 
     public double conversionSpread() {
@@ -889,13 +890,10 @@ public final class FxClientState {
     }
 
     /// Largest size the ticket may build, in items of the base currency of the selected pair: what the free
-    /// margin of the currency the order locks backs at the leverage of the order, what the exposure quota of this
-    /// account still leaves on either currency of the pair, and the size the platform accepts at the most,
-    /// whichever binds first, and zero while that margin backs nothing. The size slider of the ticket runs from
-    /// zero to this, so the panel needs no other way to set a size and never offers one the platform would refuse
-    /// for want of margin or for want of the account's own quota; what the quota of the whole server still leaves
-    /// is not part of it, because only the server can know it, and a size that runs into it is refused and
-    /// reported rather than never offered.
+    /// margin of the currency the order locks backs at the leverage of the order and the size the platform
+    /// accepts at the most, whichever binds first, and zero while that margin backs nothing. The size slider of
+    /// the ticket runs from zero to this, so the panel needs no other way to set a size and never offers one the
+    /// platform would refuse for want of margin.
     public int maxOrderUnits() {
         CurrencyPair pair = this.selectedPair;
         Currency margin = this.orderMargin(pair);
@@ -906,19 +904,8 @@ public final class FxClientState {
             return 0;
         }
         double units = Money.units(free) * this.orderLeverage * collateral / price;
-        units = Math.min(units, this.riskRoomUnits(pair, price));
         int maximum = (int) Math.clamp(units, 0.0D, TradeEngine.MAX_ORDER_UNITS);
         return maximum > 0 && this.requiredMargin(margin, maximum, this.orderLeverage) > free ? maximum - 1 : maximum;
-    }
-
-    /// Size the exposure quota of this account still leaves on a pair, in items of its base currency: the room
-    /// the platform reported on the base itself, and the room on the quote converted at the live rate, because a
-    /// position carries its size in the base while its exposure in the quote is what that size is worth. Both
-    /// rooms are absolute, so an order that hedges an open position spends them like any other.
-    private double riskRoomUnits(CurrencyPair pair, double price) {
-        double base = this.riskRoom[Currencies.index(pair.base())];
-        double quote = this.riskRoom[Currencies.index(pair.quote())] / price;
-        return Math.max(0.0D, Math.min(base, quote));
     }
 
     public static enum ChartStyle {

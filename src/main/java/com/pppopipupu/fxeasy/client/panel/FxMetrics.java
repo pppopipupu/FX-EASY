@@ -45,7 +45,8 @@ public final class FxMetrics {
                 state.marginCall() ? FxTheme.DOWN : FxTheme.AXIS);
         y += LINE;
         FxUi.text(graphics, font, area.left(), y, FxText.get("fxeasy.panel.spread"), FxTheme.MUTED);
-        FxUi.right(graphics, font, half - 2, y, FxText.literal(FxUi.rate(state.spreadHalf())), FxTheme.TEXT);
+        FxUi.right(graphics, font, half - 2, y, FxText.literal(FxUi.rate(state.openSpreadHalf(state.orderSide()))),
+                FxTheme.TEXT);
         FxUi.text(graphics, font, half + 2, y, FxText.get("fxeasy.panel.slippage"), FxTheme.MUTED);
         FxUi.right(graphics, font, right, y, FxText.literal(FxUi.percent(state.slippageChance() * 100.0D)),
                 FxTheme.TEXT);

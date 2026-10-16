@@ -146,7 +146,6 @@ public final class FxLanguage extends LanguageProvider {
             new Entry("fxeasy.reject.items", "Not enough items in the inventory", "背包中的物品数量不足"),
             new Entry("fxeasy.reject.backing", "This currency is not backed by an item", "该币种不由物品背书, 无法存入或取出"),
             new Entry("fxeasy.reject.space", "No room in the inventory", "背包空间不足"),
-            new Entry("fxeasy.reject.quota", "Exposure limit reached: this order would exceed the risk quota of the currency", "已达风险额度：这笔订单会超出该币种的持仓上限"),
             new Entry("fxeasy.confirm.cancel", "Cancel", "取消"),
             new Entry("fxeasy.confirm.close_all.title", "Close every position?", "平掉全部仓位?"),
             new Entry("fxeasy.confirm.close_all.body", "%s positions close at the current price and cannot be restored", "共 %s 个仓位将按当前价格平掉, 无法恢复"),

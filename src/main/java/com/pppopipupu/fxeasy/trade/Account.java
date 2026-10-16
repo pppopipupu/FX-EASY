@@ -390,33 +390,4 @@ public final class Account {
         }
         return lowest;
     }
-
-    /// Signed exposure of the account in one currency, in items of that currency: a position is long the base of
-    /// its pair and short the quote, whatever currency backs its margin. Splitting an order into several smaller
-    /// ones therefore changes nothing about the exposure it adds.
-    public double signedExposureItems(Currency currency, MarketEngine market) {
-        double exposure = 0.0D;
-        for (Position position : this.positions) {
-            exposure += position.exposureItems(currency, market);
-        }
-        return exposure;
-    }
-
-    /// Absolute risk of the account in one currency, in items of that currency. Two opposite positions in the
-    /// same currency do not cancel here: what the platform limits is the size it would have to unwind.
-    public double absoluteExposureItems(Currency currency, MarketEngine market) {
-        double exposure = 0.0D;
-        for (Position position : this.positions) {
-            exposure += Math.abs(position.exposureItems(currency, market));
-        }
-        return exposure;
-    }
-
-    /// Risk a limit of that many items in one currency still leaves this account, in items of that currency: the
-    /// limit less the absolute risk the open positions already carry, which is what a new order may still add.
-    /// Zero once the risk of the account has reached or passed the limit, [Double#POSITIVE_INFINITY] while the
-    /// platform limits nothing.
-    public double riskRoom(Currency currency, MarketEngine market, double limit) {
-        return Math.max(0.0D, limit - this.absoluteExposureItems(currency, market));
-    }
 }

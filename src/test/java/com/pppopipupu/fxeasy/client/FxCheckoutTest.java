@@ -42,11 +42,9 @@ class FxCheckoutTest {
         prices[Currencies.index(DIRT)] = 2.0D;
         prices[Currencies.index(GOLD)] = 1.0D;
         prices[Currencies.index(DIAMOND)] = 4.0D;
-        double[] unlimited = new double[Currencies.count()];
-        Arrays.fill(unlimited, Double.POSITIVE_INFINITY);
         FxClientState state = new FxClientState();
         state.applyMarket(new FxMarketPayload(prices, 0L, 1.0D, null, 0L));
-        state.applyAccount(new FxAccountPayload(balances, new long[Currencies.count()], balances.clone(), unlimited,
+        state.applyAccount(new FxAccountPayload(balances, new long[Currencies.count()], balances.clone(),
                 List.of(), false, 0L, true, true, true, "kurumi", 21, new long[Currencies.count()], false, 0,
                 Money.UNIT, Membership.NONE.id(), 0L, true, 0L, List.of()));
         return state;
@@ -82,16 +80,16 @@ class FxCheckoutTest {
     void aPaymentQuotesTheConvertedPriceAndItsSpread() {
         FxClientState state = state(100L * Money.UNIT, 1_000L * Money.UNIT, 0L);
         FxCheckout.Quote par = FxCheckout.quote(Membership.GO, DIRT, state.rate(DIRT, DIRT), FeeDiscount.NONE);
-        assertEquals(8_888L * Money.UNIT, par.totalMicro(), "settling in dirt costs the price of the catalogue");
+        assertEquals(888L * Money.UNIT, par.totalMicro(), "settling in dirt costs the price of the catalogue");
         assertEquals(par.totalMicro(), par.convertedMicro(), "and converts nothing");
         assertEquals(0L, par.feeMicro(), "so the conversion is free");
         FxCheckout.Quote converted = FxCheckout.quote(Membership.GO, GOLD, state.rate(DIRT, GOLD),
                 FeeDiscount.NONE);
-        assertEquals(17_776L * Money.UNIT, converted.convertedMicro(),
-                "8,888 dirt is 17,776 gold at two gold the dirt");
-        assertEquals(8_888_000L, converted.feeMicro(),
-                "the platform takes half of its conversion spread, which is 0.05% of 17,776 gold");
-        assertEquals(17_784_888_000L, converted.totalMicro());
+        assertEquals(1_776L * Money.UNIT, converted.convertedMicro(),
+                "888 dirt is 1,776 gold at two gold the dirt");
+        assertEquals(888_000L, converted.feeMicro(),
+                "the platform takes half of its conversion spread, which is 0.05% of 1,776 gold");
+        assertEquals(1_776_888_000L, converted.totalMicro());
     }
 
     /// The conversion is a cost of the platform like every other, so the plan the account trades on scales it:
@@ -102,7 +100,7 @@ class FxCheckoutTest {
         long retail = FxCheckout.quote(Membership.GO, GOLD, rate, FeeDiscount.NONE).feeMicro();
         long pro = FxCheckout.quote(Membership.GO, GOLD, rate, Membership.PRO.discount()).feeMicro();
         assertTrue(pro < retail, "a plan takes part of the conversion off");
-        assertEquals(3_021_920L, pro, "Pro carries 0.66 off the conversion, so a third of 8,888,000 is left");
+        assertEquals(301_920L, pro, "Pro carries 0.66 off the conversion, so a third of 888,000 is left");
     }
 
     /// The card of the smallest panel the terminal draws still holds its receipt, a row of currencies and its

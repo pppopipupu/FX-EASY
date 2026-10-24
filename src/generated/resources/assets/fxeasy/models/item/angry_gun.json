@@ -1,0 +1,114 @@
+{
+  "automatic_culling": false,
+  "display": {
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "fixed": {
+      "scale": [
+        1.05,
+        1.05,
+        1.05
+      ]
+    },
+    "ground": {
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ]
+    },
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ]
+    }
+  },
+  "emissive_ambient": true,
+  "flip_v": true,
+  "loader": "neoforge:obj",
+  "model": "fxeasy:models/angry_gun.obj",
+  "mtl_override": "fxeasy:models/angry_gun.mtl",
+  "shade_quads": true,
+  "textures": {
+    "particle": "fxeasy:block/face_angry_gun",
+    "texture0": "fxeasy:block/surprise_model",
+    "texture1": "fxeasy:block/angry_model",
+    "texture2": "fxeasy:block/face_angry_gun",
+    "texture3": "fxeasy:block/bow_tie"
+  }
+}

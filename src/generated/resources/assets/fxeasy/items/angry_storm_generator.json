@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "fxeasy:animated_storm_generator",
+    "base": "fxeasy:item/angry_storm_generator",
+    "model": {
+      "type": "fxeasy:angry_storm_generator"
+    }
+  }
+}

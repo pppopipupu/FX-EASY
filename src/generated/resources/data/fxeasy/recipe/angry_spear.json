@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_sword"
+  ],
+  "result": {
+    "id": "fxeasy:angry_spear"
+  }
+}

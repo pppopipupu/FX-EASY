@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "fxeasy:angry_meteor_summoner",
+    "fxeasy:angry_wand",
+    "fxeasy:angry_gun",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block"
+  ],
+  "result": {
+    "id": "fxeasy:angry_storm_generator"
+  }
+}

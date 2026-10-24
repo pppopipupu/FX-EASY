@@ -23,6 +23,33 @@ public final class FxRecipes extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.COMBAT, FxItems.ANGRY_SPEAR.get())
+                .requires(FxItems.ANGRY_LIGHTNING_BLOCK_ITEM.get(), 4)
+                .requires(FxItems.ANGRY_SWORD.get())
+                .unlockedBy("has_atomic_block", has(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get()))
+                .save(this.output, ResourceKey.create(Registries.RECIPE,
+                        Identifier.fromNamespaceAndPath(FxEasy.MODID, "angry_spear")));
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.COMBAT, FxItems.ANGRY_GUN.get())
+                .requires(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get(), 8)
+                .requires(FxItems.ANGRY_SWORD.get())
+                .unlockedBy("has_atomic_block", has(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get()))
+                .save(this.output, ResourceKey.create(Registries.RECIPE,
+                        Identifier.fromNamespaceAndPath(FxEasy.MODID, "angry_gun")));
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.MISC, FxItems.ANGRY_METEOR_SUMMONER.get())
+                .requires(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get(), 4)
+                .requires(FxItems.ANGRY_LIGHTNING_BLOCK_ITEM.get(), 4)
+                .requires(FxItems.ANGRY_BLOCK_ITEM.get())
+                .unlockedBy("has_atomic_block", has(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get()))
+                .save(this.output, ResourceKey.create(Registries.RECIPE,
+                        Identifier.fromNamespaceAndPath(FxEasy.MODID, "angry_meteor_summoner")));
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.COMBAT, FxItems.ANGRY_STORM_GENERATOR.get())
+                .requires(FxItems.ANGRY_METEOR_SUMMONER.get())
+                .requires(FxItems.ANGRY_WAND.get())
+                .requires(FxItems.ANGRY_GUN.get())
+                .requires(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get(), 6)
+                .unlockedBy("has_atomic_block", has(FxItems.ANGRY_ATOMIC_BLOCK_ITEM.get()))
+                .save(this.output, ResourceKey.create(Registries.RECIPE,
+                        Identifier.fromNamespaceAndPath(FxEasy.MODID, "angry_storm_generator")));
         ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.MISC, FxItems.FX_PHONE.get())
                 .requires(Items.IRON_INGOT)
                 .requires(Items.GOLD_INGOT)

@@ -1,4 +1,11 @@
 {
+  "block.fxeasy.angry_atomic_block": "Atomic Angry Block",
+  "block.fxeasy.angry_block": "Angry Block",
+  "block.fxeasy.angry_female_block": "Angry Female Block",
+  "block.fxeasy.angry_lightning_block": "Lightning Angry Block",
+  "block.fxeasy.surprise_block": "Surprise Block",
+  "entity.fxeasy.angry_meteor": "Angry Meteor",
+  "entity.fxeasy.angry_storm": "Angry Storm of Vengeance",
   "fxeasy.bonus.body": "Trade ten pairs of five currencies, 1x to 100x, on a market the world itself prices.",
   "fxeasy.bonus.brand": "KURUMI GROUP FX",
   "fxeasy.bonus.claim": "Claim the capital",
@@ -371,5 +378,17 @@
   "fxeasy.tutorial.ticket.body": "Lots, leverage and the margin currency set the lock-up",
   "fxeasy.tutorial.ticket.hint": "Deposit/withdraw move your items",
   "fxeasy.tutorial.ticket.title": "Order ticket",
-  "item.fxeasy.fx_phone": "FX Phone"
+  "item.fxeasy.angry_gun": "§cAngry Gun",
+  "item.fxeasy.angry_meteor_summoner": "§cAngry Meteor Summoner",
+  "item.fxeasy.angry_spear": "§c§l§oAngry§r§r§r§0§l Bizarre§r§r§f§n Hybrid Spear§r§r",
+  "item.fxeasy.angry_storm_generator": "§5§lAngry Storm of Vengeance Generator",
+  "item.fxeasy.angry_sword": "§cAngry Sword",
+  "item.fxeasy.angry_wand": "Angry Wand",
+  "item.fxeasy.fx_phone": "FX Phone",
+  "tooltip.fxeasy.angry_atomic_block": "Atomic energy!",
+  "tooltip.fxeasy.angry_block": "Yes, it is really *angry*",
+  "tooltip.fxeasy.angry_lightning_block": "Use it with caution",
+  "tooltip.fxeasy.angry_meteor_summoner": "Right click a block to call down an Angry meteor (3 second cooldown)",
+  "tooltip.fxeasy.angry_storm_generator": "Right click to unleash a 45s seven-stage Storm of Vengeance; consumes Angry health to amplify",
+  "tooltip.fxeasy.angry_sword": "Hold right click to release the anger"
 }

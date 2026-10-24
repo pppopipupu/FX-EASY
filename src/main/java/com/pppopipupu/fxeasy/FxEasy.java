@@ -3,12 +3,16 @@ package com.pppopipupu.fxeasy;
 import module java.base;
 
 import com.mojang.logging.LogUtils;
+import com.pppopipupu.fxeasy.content.AngryHealth;
+import com.pppopipupu.fxeasy.content.FxBlocks;
+import com.pppopipupu.fxeasy.content.FxEntities;
 import com.pppopipupu.fxeasy.content.FxItems;
 import com.pppopipupu.fxeasy.datagen.FxLanguage;
 import com.pppopipupu.fxeasy.datagen.FxModels;
 import com.pppopipupu.fxeasy.datagen.FxRecipes;
 import com.pppopipupu.fxeasy.datagen.FxStructures;
 import com.pppopipupu.fxeasy.datagen.FxVillages;
+import com.pppopipupu.fxeasy.gametest.FxAngryGameTests;
 import com.pppopipupu.fxeasy.gametest.FxEconomyGameTests;
 import com.pppopipupu.fxeasy.gametest.FxMarketGameTests;
 import com.pppopipupu.fxeasy.gametest.FxVillageGameTests;
@@ -35,9 +39,16 @@ public final class FxEasy {
 
     public FxEasy(IEventBus modBus, ModContainer container) {
         FxConfig.register(container);
+        FxBlocks.BLOCKS.register(modBus);
+        FxBlocks.BLOCK_ENTITY_TYPES.register(modBus);
+        FxBlocks.BLOCK_TYPES.register(modBus);
+        FxEntities.ENTITY_TYPES.register(modBus);
+        FxEntities.PARTICLE_TYPES.register(modBus);
         FxItems.ITEMS.register(modBus);
+        AngryHealth.register(modBus);
         FxNetwork.register(modBus);
         FxMarketGameTests.register(modBus);
+        FxAngryGameTests.register(modBus);
         FxEconomyGameTests.register(modBus);
         FxVillageGameTests.register(modBus);
         FxWorldEconomyTracker.register(modBus);
@@ -46,6 +57,7 @@ public final class FxEasy {
         NeoForge.EVENT_BUS.addListener(FxEasy::onServerStarted);
         NeoForge.EVENT_BUS.addListener(FxEasy::onServerStopping);
         NeoForge.EVENT_BUS.addListener(FxEasy::onServerTick);
+        NeoForge.EVENT_BUS.addListener(AngryHealth::onLivingDamage);
     }
 
     /// The economy is retuned by editing a file, so the cached values are refreshed whenever the config loads or
@@ -74,14 +86,17 @@ public final class FxEasy {
     }
 
     private static void onServerStarted(ServerStartedEvent event) {
+        FxTickScheduler.clearServer();
         FxTradingService.start(event.getServer());
     }
 
     private static void onServerStopping(ServerStoppingEvent event) {
+        FxTickScheduler.clearServer();
         FxTradingService.stop();
     }
 
     private static void onServerTick(ServerTickEvent.Post event) {
         FxTradingService.tickServer();
+        FxTickScheduler.tickServer();
     }
 }

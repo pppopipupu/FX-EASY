@@ -1,0 +1,42 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "fxeasy:item/angry_meteor_summoner_block",
+        "transformation": {
+          "left_rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "right_rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            0.32,
+            0.32,
+            0.32
+          ],
+          "translation": [
+            0.18,
+            0.72,
+            0.18
+          ]
+        }
+      },
+      {
+        "type": "minecraft:special",
+        "base": "fxeasy:item/angry_meteor_summoner",
+        "model": {
+          "type": "fxeasy:angry_meteor_summoner"
+        }
+      }
+    ]
+  }
+}

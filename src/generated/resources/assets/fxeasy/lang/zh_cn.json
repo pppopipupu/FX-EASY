@@ -1,4 +1,11 @@
 {
+  "block.fxeasy.angry_atomic_block": "原子安格瑞方块",
+  "block.fxeasy.angry_block": "安格瑞方块",
+  "block.fxeasy.angry_female_block": "母安格瑞方块",
+  "block.fxeasy.angry_lightning_block": "霹雳无敌闪电安格瑞方块",
+  "block.fxeasy.surprise_block": "惊喜方块",
+  "entity.fxeasy.angry_meteor": "安格瑞陨石",
+  "entity.fxeasy.angry_storm": "安格瑞复仇风暴",
   "fxeasy.bonus.body": "五币种十交易对, 1~100 倍杠杆, 行情由世界的产出定价。",
   "fxeasy.bonus.brand": "久留美集团 FX",
   "fxeasy.bonus.claim": "领取交易金",
@@ -371,5 +378,17 @@
   "fxeasy.tutorial.ticket.body": "手数、杠杆与保证金币种决定占用",
   "fxeasy.tutorial.ticket.hint": "入金/出金搬运背包物品",
   "fxeasy.tutorial.ticket.title": "下单区",
-  "item.fxeasy.fx_phone": "FX用手机"
+  "item.fxeasy.angry_gun": "§c安格瑞神枪",
+  "item.fxeasy.angry_meteor_summoner": "§c安格瑞陨石召唤器",
+  "item.fxeasy.angry_spear": "§c§l§o安格瑞§r§r§r§0§l猎奇§r§r§f§n混合长矛§r§r",
+  "item.fxeasy.angry_storm_generator": "§5§l安格瑞复仇风暴发生器",
+  "item.fxeasy.angry_sword": "§c安格瑞之刃",
+  "item.fxeasy.angry_wand": "安格瑞法杖",
+  "item.fxeasy.fx_phone": "FX用手机",
+  "tooltip.fxeasy.angry_atomic_block": "原子能！！！",
+  "tooltip.fxeasy.angry_block": "是的，它真的很*安格瑞*",
+  "tooltip.fxeasy.angry_lightning_block": "小心使用",
+  "tooltip.fxeasy.angry_meteor_summoner": "右击方块召唤一颗安格瑞陨石（3 秒冷却）",
+  "tooltip.fxeasy.angry_storm_generator": "右击召唤持续 45 秒的七阶安格瑞复仇风暴，消耗安格瑞生命值可大幅增幅威力（45 秒冷却）",
+  "tooltip.fxeasy.angry_sword": "长按右键即可释放安格瑞之力！！！"
 }

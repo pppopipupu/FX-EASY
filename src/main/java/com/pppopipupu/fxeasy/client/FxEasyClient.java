@@ -3,7 +3,11 @@ package com.pppopipupu.fxeasy.client;
 import module java.base;
 
 import com.pppopipupu.fxeasy.FxEasy;
+import com.pppopipupu.fxeasy.FxTickScheduler;
 import com.pppopipupu.fxeasy.client.panel.FxShopCard;
+import com.pppopipupu.fxeasy.client.render.AngryMeteorSummonerRenderer;
+import com.pppopipupu.fxeasy.client.render.AngryStormGeneratorRenderer;
+import com.pppopipupu.fxeasy.client.render.AngryWandRenderer;
 import com.pppopipupu.fxeasy.market.Currencies;
 import com.pppopipupu.fxeasy.market.Currency;
 import com.pppopipupu.fxeasy.net.FxAccountPayload;
@@ -15,11 +19,14 @@ import com.pppopipupu.fxeasy.net.FxLoungePoolPayload;
 import com.pppopipupu.fxeasy.net.FxMarketPayload;
 import com.pppopipupu.fxeasy.net.FxNoticePayload;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -60,7 +67,18 @@ public final class FxEasyClient {
     private static int terminalTicks = -1;
 
     public FxEasyClient(IEventBus modBus) {
+        AngryClient.install();
+        modBus.addListener(AngryClient::registerRenderers);
+        modBus.addListener(AngryClient::registerParticleProviders);
+        modBus.addListener(AngryClient::registerParticleGroups);
+        modBus.addListener(AngryClient::registerPipelines);
+        modBus.addListener(AngryWandRenderer::registerSpecialModelRenderers);
+        modBus.addListener(AngryWandRenderer::registerItemModels);
+        modBus.addListener(AngryMeteorSummonerRenderer::registerSpecialModelRenderers);
+        modBus.addListener(AngryStormGeneratorRenderer::registerSpecialModelRenderers);
+        modBus.addListener(AngryStormGeneratorRenderer::registerItemModels);
         modBus.addListener(FxEasyClient::registerPayloadHandlers);
+        modBus.addListener(FxEasyClient::registerGuiLayers);
         modBus.addListener(FxPhoneRenderer::registerPipelines);
         modBus.addListener(FxShopCard::registerPipelines);
         modBus.addListener(FxPhoneRenderer::registerSpecialModelRenderers);
@@ -75,11 +93,18 @@ public final class FxEasyClient {
         }
     }
 
+    private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.PLAYER_HEALTH,
+                Identifier.fromNamespaceAndPath(FxEasy.MODID, "angry_health"), AngryHealthHud::render);
+    }
+
     /// The mirror describes one world and one player, so entering a world drops what the previous one left in
     /// it: without this an account opened in an earlier world would keep the opening behind the panel in a world
     /// whose platform has never heard of it.
     private static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
         FxClientState.INSTANCE.reset();
+        FxTickScheduler.clearClient();
+        AngryPostEffects.set(-1);
         FxEasy.LOGGER.info("FX terminal mirror reset for a new world");
     }
 
@@ -161,6 +186,7 @@ public final class FxEasyClient {
 
     private static void onClientTick(ClientTickEvent.Post event) {
         FxClientState.INSTANCE.tick();
+        FxTickScheduler.tickClient();
         if (TERMINAL_TICKS > 0) {
             driveTerminalForTests();
         }

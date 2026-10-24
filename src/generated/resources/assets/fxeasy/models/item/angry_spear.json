@@ -1,0 +1,131 @@
+{
+  "automatic_culling": false,
+  "display": {
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        90,
+        -25
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ],
+      "translation": [
+        2,
+        8,
+        1
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        -90,
+        25
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ],
+      "translation": [
+        2,
+        8,
+        1
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "translation": [
+        0,
+        -8,
+        -7
+      ]
+    },
+    "ground": {
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ],
+      "translation": [
+        0,
+        11,
+        0
+      ]
+    },
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "scale": [
+        0.33,
+        0.33,
+        0.33
+      ],
+      "translation": [
+        0,
+        -10,
+        0
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        90,
+        -45
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "translation": [
+        0,
+        12,
+        2.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        -90,
+        45
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "translation": [
+        0,
+        12,
+        2.5
+      ]
+    }
+  },
+  "emissive_ambient": true,
+  "flip_v": true,
+  "loader": "neoforge:obj",
+  "model": "fxeasy:models/angry_spear.obj",
+  "mtl_override": "fxeasy:models/angry_spear.mtl",
+  "shade_quads": true,
+  "textures": {
+    "particle": "fxeasy:block/face_angry",
+    "texture0": "fxeasy:block/angry_model",
+    "texture1": "fxeasy:block/bow_tie",
+    "texture2": "fxeasy:block/surprise_model"
+  }
+}

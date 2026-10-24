@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_atomic_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_lightning_block",
+    "fxeasy:angry_block"
+  ],
+  "result": {
+    "id": "fxeasy:angry_meteor_summoner"
+  }
+}

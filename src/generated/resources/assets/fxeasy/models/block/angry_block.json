@@ -1,0 +1,13 @@
+{
+  "automatic_culling": false,
+  "emissive_ambient": true,
+  "flip_v": true,
+  "loader": "neoforge:obj",
+  "model": "fxeasy:models/angry.obj",
+  "mtl_override": "fxeasy:models/angry.mtl",
+  "shade_quads": true,
+  "textures": {
+    "particle": "fxeasy:block/face_angry",
+    "texture0": "fxeasy:block/angry_model"
+  }
+}
